@@ -1,0 +1,51 @@
+{
+    "name": "teamgantt/dues",
+    "description": "",
+    "keywords": [
+        "teamgantt",
+        "subscriptions",
+        "payment-processing",
+        "payment"
+    ],
+    "homepage": "https://github.com/teamgant/dues",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Brian Scaturro",
+            "email": "brian@teamgantt.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "braintree/braintree_php": "^5.1",
+        "spatie/enum": "^3.5"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^2.16",
+        "phpstan/phpstan": "^0.12.56",
+        "phpunit/phpunit": "^9.4",
+        "vlucas/phpdotenv": "^5.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "TeamGantt\\Dues\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "TeamGantt\\Dues\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit tests",
+        "test:unit": "vendor/bin/phpunit tests --exclude-group integration",
+        "test:integration": "vendor/bin/phpunit tests --group integration",
+        "fix": "vendor/bin/php-cs-fixer fix src tests --config .php_cs",
+        "analyse": "vendor/bin/phpstan analyse"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
