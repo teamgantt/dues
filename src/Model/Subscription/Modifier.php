@@ -56,4 +56,16 @@ abstract class Modifier extends Entity implements Arrayable
 
         return $array;
     }
+
+    public function isEqualTo(Entity $other): bool
+    {
+        if (!$other instanceof Modifier) {
+            return false;
+        }
+        $idsAreEqual = $this->getId() === $other->getId();
+        $quantitiesAreEqual = $this->getQuantity() === $other->getQuantity();
+        $pricesAreEqual = $this->getPrice() == $other->getPrice();
+
+        return $idsAreEqual && $quantitiesAreEqual && $pricesAreEqual;
+    }
 }
