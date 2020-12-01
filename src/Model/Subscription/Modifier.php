@@ -12,6 +12,13 @@ abstract class Modifier extends Entity implements Arrayable
 
     protected ?int $quantity = null;
 
+    public function __construct(?string $id = null, ?int $quantity = null, ?Price $price = null)
+    {
+        parent::__construct($id);
+        $this->quantity = $quantity;
+        $this->price = $price;
+    }
+
     public function getPrice(): ?Price
     {
         return $this->price;
