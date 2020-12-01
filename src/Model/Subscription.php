@@ -6,6 +6,7 @@ use DateTime;
 use TeamGantt\Dues\Contracts\Arrayable;
 use TeamGantt\Dues\Model\Subscription\AddOn;
 use TeamGantt\Dues\Model\Subscription\Discount;
+use TeamGantt\Dues\Model\Subscription\Modifier;
 use TeamGantt\Dues\Model\Subscription\Modifiers;
 use TeamGantt\Dues\Model\Subscription\Status;
 
@@ -286,8 +287,45 @@ class Subscription extends Entity implements Arrayable
             $this->setPrice($plan->getPrice());
         }
 
+        $this->mergePlanDefaults($plan);
+
         $this->plan = $plan;
 
         return $this;
+    }
+
+    private function mergePlanDefaults(?Plan $plan): void
+    {
+        if (empty($plan)) {
+            return;
+        }
+
+        $this->setAddOns($this->mergeCurrentModifiers($this->getAddOns(), $plan->getAddOns()));
+        $this->setDiscounts($this->mergeCurrentModifiers($this->getDiscounts(), $plan->getDiscounts()));
+    }
+
+    /**
+     * @param Modifier[] $modifiers
+     */
+    private function mergeCurrentModifiers(Modifiers $source, array $modifiers): Modifiers
+    {
+        if (empty($modifiers)) {
+            return $source;
+        }
+
+        $provided = $source->getAll();
+        $modifierDefaults = new Modifiers($this, $modifiers);
+
+        foreach ($provided as $modifier) {
+            $default = $modifierDefaults->get($modifier->getId() ?? '');
+
+            if (null === $default || $default->isEqualTo($modifier)) {
+                continue;
+            }
+
+            $modifierDefaults->add($modifier);
+        }
+
+        return $modifierDefaults;
     }
 }

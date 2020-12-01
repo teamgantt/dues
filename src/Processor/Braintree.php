@@ -241,6 +241,15 @@ class Braintree implements SubscriptionGateway
         $customer = $subscription->getCustomer();
         $isNewCustomer = false;
 
+        $plan = $subscription->getPlan();
+
+        if (null === $plan) {
+            throw new SubscriptionNotCreatedException('Cannot create Subscription without a Plan');
+        }
+
+        $plan = $this->findPlanById($plan->getId() ?? '');
+        $subscription->setPlan($plan);
+
         if ($customer && $customer->isNew()) {
             $isNewCustomer = true;
             $subscription->setCustomer($this->createCustomer($customer));
