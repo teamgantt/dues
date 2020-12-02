@@ -6,6 +6,7 @@ use DateInterval;
 use DateTime;
 use DateTimeZone;
 use TeamGantt\Dues\Dues;
+use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\Customer\CustomerBuilder;
 use TeamGantt\Dues\Model\PaymentMethod\Nonce;
 use TeamGantt\Dues\Model\Subscription\SubscriptionBuilder;
@@ -42,8 +43,9 @@ trait ProvidesTestData
     {
         ['existing customer' => [$customerFactory]] = $this->customerProvider();
 
-        $factory = function (Dues $dues) use ($customerFactory) {
-            $customer = $customerFactory($dues);
+        $factory = function (Dues $dues, ?Customer $customer = null, ?callable $cb = null) use ($customerFactory) {
+            $customer = $customer ?? $customerFactory($dues);
+            $callback = $cb ?? fn ($x) => $x;
             $addOns = $dues->listAddOns();
             $plan = $dues->findPlanById('test-plan-c-yearly');
             $now = new DateTime('now', new DateTimeZone('UTC'));
@@ -56,7 +58,7 @@ trait ProvidesTestData
                 ->withStartDate($startDate)
                 ->build();
 
-            return $dues->createSubscription($subscription);
+            return $dues->createSubscription($callback($subscription));
         };
 
         return ['test-plan-c-yearly' => [$factory]];

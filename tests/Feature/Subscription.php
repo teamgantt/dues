@@ -12,6 +12,7 @@ use TeamGantt\Dues\Exception\SubscriptionNotUpdatedException;
 use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Price;
 use TeamGantt\Dues\Model\Subscription\AddOn;
+use TeamGantt\Dues\Model\Subscription as ModelSubscription;
 use TeamGantt\Dues\Model\Subscription\Discount;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Subscription\SubscriptionBuilder;
@@ -464,6 +465,23 @@ trait Subscription
         $this->assertNotNull($customer);
         $subscriptions = $this->dues->findSubscriptionsByCustomerId($customer->getId());
         $this->assertCount(1, $subscriptions);
+    }
+
+    /**
+     * @dataProvider subscriptionProvider
+     * @group integration
+     */
+    public function testFindSubscriptionsByCustomerIdWithStatusFilter(callable $subscriptionFactory)
+    {
+        $pending = $subscriptionFactory($this->dues); // create a pending subscription
+        $customer = $pending->getCustomer();
+        $subscriptionFactory($this->dues, $customer, fn (ModelSubscription $sub) => $sub->setStartDate(null)); // create an active subscription
+        $canceled = $subscriptionFactory($this->dues, $customer);
+        $canceled = $this->dues->cancelSubscription($canceled->getId()); // create a canceled subscription
+        $subscriptions = $this->dues->findSubscriptionsByCustomerId($customer->getId(), [Status::active(), Status::pending()]);
+        $this->assertCount(2, $subscriptions);
+        $this->assertEquals(Status::pending(), $subscriptions[0]->getStatus());
+        $this->assertEquals(Status::active(), $subscriptions[1]->getStatus());
     }
 
     /**

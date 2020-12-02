@@ -8,6 +8,7 @@ use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Model\Subscription\AddOn;
 use TeamGantt\Dues\Model\Subscription\Discount;
+use TeamGantt\Dues\Model\Subscription\Status;
 
 interface SubscriptionGateway
 {
@@ -35,9 +36,11 @@ interface SubscriptionGateway
     public function updateSubscription(Subscription $subscription): Subscription;
 
     /**
+     * @param Status[] $statuses
+     *
      * @return Subscription[]
      */
-    public function findSubscriptionsByCustomerId(string $customerId): array;
+    public function findSubscriptionsByCustomerId(string $customerId, array $statuses = []): array;
 
     public function findSubscriptionById(string $subscriptionId): ?Subscription;
 

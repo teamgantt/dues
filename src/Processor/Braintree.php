@@ -156,7 +156,12 @@ class Braintree implements SubscriptionGateway
         return null;
     }
 
-    public function findSubscriptionsByCustomerId(string $customerId): array
+    /**
+     * @param Status[] $statuses
+     *
+     * @return Subscription[]
+     */
+    public function findSubscriptionsByCustomerId(string $customerId, array $statuses = []): array
     {
         $customerResult = $this->findBraintreeCustomerById($customerId);
 
@@ -164,9 +169,15 @@ class Braintree implements SubscriptionGateway
             return [];
         }
 
-        return Arr::mapcat($customerResult->paymentMethods, function ($pm) {
+        $subscriptions = Arr::mapcat($customerResult->paymentMethods, function ($pm) {
             return array_map([$this->subscriptionMapper, 'fromResult'], $pm->subscriptions);
         });
+
+        if (empty($statuses)) {
+            return $subscriptions;
+        }
+
+        return array_values(array_filter($subscriptions, fn (Subscription $sub) => in_array($sub->getStatus(), $statuses)));
     }
 
     private function findBraintreeCustomerById(string $customerId): ?BraintreeCustomer
