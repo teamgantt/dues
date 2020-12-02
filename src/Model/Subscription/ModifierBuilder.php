@@ -24,15 +24,13 @@ abstract class ModifierBuilder extends Builder
 
     protected function buildModifier(Modifier $modifier): void
     {
-        ['quantity' => $quantity, 'price' => $price] = $this->data;
-
-        $this->data = [];
-
-        if (!empty($quantity)) {
-            $modifier->setQuantity($quantity);
+        if (!empty($this->get('quantity'))) {
+            $modifier->setQuantity($this->get('quantity'));
         }
 
-        $modifier->setPrice($price);
+        $modifier->setPrice($this->get('price'));
+
+        $this->reset();
     }
 
     /**
