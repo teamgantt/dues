@@ -35,6 +35,16 @@ trait ProcessesSubscriptions
         return $this->gateway->cancelSubscription($subscriptionId);
     }
 
+    /**
+     * @param Subscription[] $subscriptions
+     *
+     * @return Subscription[]
+     */
+    public function cancelSubscriptions(array $subscriptions): array
+    {
+        return $this->gateway->cancelSubscriptions($subscriptions);
+    }
+
     public function createPaymentMethod(PaymentMethod $paymentMethod): PaymentMethod
     {
         return $this->gateway->createPaymentMethod($paymentMethod);

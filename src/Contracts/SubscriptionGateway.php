@@ -25,6 +25,13 @@ interface SubscriptionGateway
 
     public function cancelSubscription(string $subscriptionId): Subscription;
 
+    /**
+     * @param Subscription[] $subscriptions
+     *
+     * @return Subscription[]
+     */
+    public function cancelSubscriptions(array $subscriptions): array;
+
     public function updateSubscription(Subscription $subscription): Subscription;
 
     /**

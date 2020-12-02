@@ -22,6 +22,7 @@ use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\PaymentMethod\Token;
 use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Subscription;
+use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Processor\Braintree\AddOnMapper;
 use TeamGantt\Dues\Processor\Braintree\CustomerMapper;
 use TeamGantt\Dues\Processor\Braintree\DiscountMapper;
@@ -218,6 +219,23 @@ class Braintree implements SubscriptionGateway
         } catch (Exception $e) {
             throw new SubscriptionNotCanceledException($e->getMessage());
         }
+    }
+
+    /**
+     * @param Subscription[] $subscriptions
+     *
+     * @return Subscription[]
+     */
+    public function cancelSubscriptions(array $subscriptions): array
+    {
+        $canceled = [];
+        foreach ($subscriptions as $subscription) {
+            if ($subscription->isNot(Status::canceled(), Status::expired())) {
+                $canceled[] = $this->cancelSubscription($subscription->getId() ?? '');
+            }
+        }
+
+        return $canceled;
     }
 
     public function createPaymentMethod(PaymentMethod $paymentMethod): Token
