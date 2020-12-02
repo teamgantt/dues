@@ -48,6 +48,54 @@ trait Subscription
     }
 
     /**
+     * @group integration
+     * @dataProvider customerProvider
+     *
+     * @return void
+     */
+    public function testModifyingDefaultSubscriptionAddOn(callable $customerFactory)
+    {
+        $customer = $customerFactory($this->dues);
+        $plan = $this->dues->findPlanById('test-plan-d-yearly');
+        $addOn = new AddOn('test-plan-d-yearly-u', 2);
+
+        $subscription = (new SubscriptionBuilder())
+            ->withCustomer($customer)
+            ->withPlan($plan)
+            ->withAddOn($addOn)
+            ->build();
+
+        $subscription = $this->dues->createSubscription($subscription);
+
+        $this->assertFalse($subscription->isNew());
+        $this->assertEquals(2, $subscription->getAddOns()[0]->getQuantity());
+    }
+
+    /**
+     * @group integration
+     * @dataProvider customerProvider
+     *
+     * @return void
+     */
+    public function testModifyingDefaultSubscriptionDiscount(callable $customerFactory)
+    {
+        $customer = $customerFactory($this->dues);
+        $plan = $this->dues->findPlanById('test-plan-d-yearly');
+        $discount = new Discount('test-plan-d-yearly-discount', 2);
+
+        $subscription = (new SubscriptionBuilder())
+            ->withCustomer($customer)
+            ->withPlan($plan)
+            ->withDiscount($discount)
+            ->build();
+
+        $subscription = $this->dues->createSubscription($subscription);
+
+        $this->assertFalse($subscription->isNew());
+        $this->assertEquals(2, $subscription->getDiscounts()[0]->getQuantity());
+    }
+
+    /**
      * In a perfect world, changing a plan would also update the price. This is at least
      * not the case with Braintree. This assertion may only make sense in the context
      * of Braintree since Braintree does NOT update price when a plan changes.
@@ -67,6 +115,28 @@ trait Subscription
 
         $this->assertEquals($updated->getPlan()->getId(), 'test-plan-b-yearly');
         $this->assertEquals($updated->getPrice()->getAmount(), $plan->getPrice()->getAmount());
+        $previous = $subscription->toArray();
+        $next = $updated->toArray();
+        $this->assertEquals(Arr::dissoc($previous, ['plan', 'price']), Arr::dissoc($next, ['plan', 'price']));
+    }
+
+    /**
+     * @group integration
+     * @dataProvider subscriptionProvider
+     *
+     * @return void
+     */
+    public function testUpdateSubscriptionPriceAndPlan(callable $subscriptionFactory)
+    {
+        $subscription = $subscriptionFactory($this->dues);
+        $plan = $this->dues->findPlanById('test-plan-b-yearly');
+        $subscription->setPlan($plan);
+        $subscription->setPrice(new Price(20.00));
+
+        $updated = $this->dues->updateSubscription($subscription);
+
+        $this->assertEquals($updated->getPlan()->getId(), 'test-plan-b-yearly');
+        $this->assertEquals($updated->getPrice()->getAmount(), 20.00);
         $previous = $subscription->toArray();
         $next = $updated->toArray();
         $this->assertEquals(Arr::dissoc($previous, ['plan', 'price']), Arr::dissoc($next, ['plan', 'price']));
@@ -138,28 +208,6 @@ trait Subscription
         $subscription->setPrice(new Price(-10.00));
 
         $this->dues->updateSubscription($subscription);
-    }
-
-    /**
-     * @group integration
-     * @dataProvider subscriptionProvider
-     *
-     * @return void
-     */
-    public function testUpdateSubscriptionPriceAndPlan(callable $subscriptionFactory)
-    {
-        $subscription = $subscriptionFactory($this->dues);
-        $plan = $this->dues->findPlanById('test-plan-b-yearly');
-        $subscription->setPlan($plan);
-        $subscription->setPrice(new Price(20.00));
-
-        $updated = $this->dues->updateSubscription($subscription);
-
-        $this->assertEquals($updated->getPlan()->getId(), 'test-plan-b-yearly');
-        $this->assertEquals($updated->getPrice()->getAmount(), 20.00);
-        $previous = $subscription->toArray();
-        $next = $updated->toArray();
-        $this->assertEquals(Arr::dissoc($previous, ['plan', 'price']), Arr::dissoc($next, ['plan', 'price']));
     }
 
     /**

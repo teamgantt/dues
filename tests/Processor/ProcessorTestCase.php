@@ -25,8 +25,8 @@ abstract class ProcessorTestCase extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        $dir = realpath(__DIR__ . '/../../');
-        $path = realpath($dir . '/.env.test');
+        $dir = realpath(__DIR__.'/../../');
+        $path = realpath($dir.'/.env.test');
 
         if (!file_exists($path)) {
             return;

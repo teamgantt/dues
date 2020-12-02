@@ -27,4 +27,21 @@ trait Plan
         $this->assertEquals('test-plan-c-yearly', $plan->getId());
         $this->assertNotNull($plan->getPrice());
     }
+
+    /**
+     * @group integration
+     *
+     * @return void
+     */
+    public function testFindPlanWithModifiersById()
+    {
+        $plan = $this->gateway->findPlanById('test-plan-d-yearly');
+        $addOns = $plan->getAddOns();
+        $discounts = $plan->getDiscounts();
+
+        $this->assertEquals('test-plan-d-yearly', $plan->getId());
+        $this->assertNotNull($plan->getPrice());
+        $this->assertEquals('test-plan-d-yearly-u', $addOns[0]->getId());
+        $this->assertEquals('test-plan-d-yearly-discount', $discounts[0]->getId());
+    }
 }

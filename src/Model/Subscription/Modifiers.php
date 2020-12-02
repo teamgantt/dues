@@ -47,15 +47,22 @@ class Modifiers implements Arrayable, ArrayAccess, Countable
     {
         $key = $modifier->getId();
 
-        if ($this->subscription->isNew()) {
-            $this->new[$key] = $modifier;
-        } elseif (isset($this->current[$key])) {
+        if (isset($this->current[$key])) {
             $this->current[$key] = $modifier;
         } else {
             $this->new[$key] = $modifier;
         }
 
         unset($this->removed[$key]);
+    }
+
+    public function get(string $id): ?Modifier
+    {
+        if (isset($this->current[$id])) {
+            return $this->current[$id];
+        }
+
+        return $this->new[$id] ?? null;
     }
 
     public function remove(string $id): void

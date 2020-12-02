@@ -12,6 +12,13 @@ abstract class Modifier extends Entity implements Arrayable
 
     protected ?int $quantity = null;
 
+    public function __construct(?string $id = null, ?int $quantity = null, ?Price $price = null)
+    {
+        parent::__construct($id);
+        $this->quantity = $quantity;
+        $this->price = $price;
+    }
+
     public function getPrice(): ?Price
     {
         return $this->price;
@@ -48,5 +55,17 @@ abstract class Modifier extends Entity implements Arrayable
         }
 
         return $array;
+    }
+
+    public function isEqualTo(Entity $other): bool
+    {
+        if (!$other instanceof Modifier) {
+            return false;
+        }
+        $idsAreEqual = $this->getId() === $other->getId();
+        $quantitiesAreEqual = $this->getQuantity() === $other->getQuantity();
+        $pricesAreEqual = $this->getPrice() == $other->getPrice();
+
+        return $idsAreEqual && $quantitiesAreEqual && $pricesAreEqual;
     }
 }

@@ -21,12 +21,12 @@ use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\PaymentMethod\Token;
 use TeamGantt\Dues\Model\Plan;
-use TeamGantt\Dues\Model\Price;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Processor\Braintree\AddOnMapper;
 use TeamGantt\Dues\Processor\Braintree\CustomerMapper;
 use TeamGantt\Dues\Processor\Braintree\DiscountMapper;
 use TeamGantt\Dues\Processor\Braintree\PaymentMethodMapper;
+use TeamGantt\Dues\Processor\Braintree\PlanMapper;
 use TeamGantt\Dues\Processor\Braintree\SubscriptionMapper;
 
 class Braintree implements SubscriptionGateway
@@ -43,6 +43,8 @@ class Braintree implements SubscriptionGateway
 
     private DiscountMapper $discountMapper;
 
+    private PlanMapper $planMapper;
+
     /**
      * @param array<mixed> $config
      *
@@ -56,6 +58,7 @@ class Braintree implements SubscriptionGateway
         $this->addOnMapper = new AddOnMapper();
         $this->discountMapper = new DiscountMapper();
         $this->subscriptionMapper = new SubscriptionMapper($this->addOnMapper, $this->discountMapper);
+        $this->planMapper = new PlanMapper($this->addOnMapper, $this->discountMapper);
     }
 
     public function createCustomer(Customer $customer): Customer
@@ -238,6 +241,15 @@ class Braintree implements SubscriptionGateway
         $customer = $subscription->getCustomer();
         $isNewCustomer = false;
 
+        $plan = $subscription->getPlan();
+
+        if (null === $plan) {
+            throw new SubscriptionNotCreatedException('Cannot create Subscription without a Plan');
+        }
+
+        $plan = $this->findPlanById($plan->getId() ?? '');
+        $subscription->setPlan($plan);
+
         if ($customer && $customer->isNew()) {
             $isNewCustomer = true;
             $subscription->setCustomer($this->createCustomer($customer));
@@ -298,8 +310,7 @@ class Braintree implements SubscriptionGateway
             ->all();
 
         return array_reduce($results, function ($r, $i) {
-            $plan = new Plan($i->id);
-            $plan->setPrice(new Price($i->price));
+            $plan = $this->planMapper->fromResult($i);
 
             return [...$r, $plan];
         }, []);
