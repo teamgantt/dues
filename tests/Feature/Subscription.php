@@ -127,6 +127,27 @@ trait Subscription
      *
      * @return void
      */
+    public function testUpdateSubscriptionPlanToPlanWithDifferentBillingCycle(callable $subscriptionFactory)
+    {
+        $subscription = $subscriptionFactory($this->dues, null, fn (ModelSubscription $s) => $s->setStartDate(null));
+        $plan = $this->dues->findPlanById('test-plan-c-monthly');
+        $subscription->setPlan($plan);
+
+        $updated = $this->dues->updateSubscription($subscription);
+
+        $this->assertEquals('test-plan-c-monthly', $updated->getPlan()->getId());
+        $this->assertEquals($plan->getPrice()->getAmount(), $updated->getPrice()->getAmount());
+        $previous = $subscription->toArray();
+        $next = $updated->toArray();
+        $this->assertEquals(Arr::dissoc($previous, ['id', 'plan', 'price']), Arr::dissoc($next, ['id', 'plan', 'price']));
+    }
+
+    /**
+     * @group integration
+     * @dataProvider subscriptionProvider
+     *
+     * @return void
+     */
     public function testUpdateSubscriptionPriceAndPlan(callable $subscriptionFactory)
     {
         $subscription = $subscriptionFactory($this->dues);

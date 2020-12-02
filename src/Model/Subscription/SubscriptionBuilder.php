@@ -78,7 +78,7 @@ class SubscriptionBuilder extends Builder
     }
 
     /**
-     * @param AddOn[] $addOns
+     * @param Modifier[] $addOns
      *
      * @return SubscriptionBuilder
      */
@@ -102,7 +102,7 @@ class SubscriptionBuilder extends Builder
     }
 
     /**
-     * @param Discount[] $discounts
+     * @param Modifier[] $discounts
      *
      * @return SubscriptionBuilder
      */
@@ -133,8 +133,7 @@ class SubscriptionBuilder extends Builder
             ->setStatus($this->get('status'))
             ->setCustomer($this->get('customer'))
             ->setPaymentMethod($this->get('paymentMethod'))
-            ->setBalance($this->get('balance'))
-            ->setPlan($this->get('plan'));
+            ->setBalance($this->get('balance'));
 
         $addOns = $this->get('addOns') ?? [];
         foreach ($addOns as $addOn) {
@@ -145,6 +144,8 @@ class SubscriptionBuilder extends Builder
         foreach ($discounts as $discount) {
             $subscription->addDiscount($discount);
         }
+
+        $subscription->setPlan($this->get('plan'));
 
         $this->reset();
 
