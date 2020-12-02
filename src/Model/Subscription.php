@@ -24,6 +24,8 @@ class Subscription extends Entity implements Arrayable
 
     protected ?Plan $plan = null;
 
+    protected ?Money $balance = null;
+
     protected Modifiers $addOns;
 
     protected Modifiers $discounts;
@@ -91,6 +93,21 @@ class Subscription extends Entity implements Arrayable
         if (!empty($other->getDiscounts())) {
             $this->setDiscounts($other->getDiscounts());
         }
+
+        return $this;
+    }
+
+    public function getBalance(): ?Money
+    {
+        return $this->balance;
+    }
+
+    /**
+     * @return Subscription
+     */
+    public function setBalance(?Money $balance): self
+    {
+        $this->balance = $balance;
 
         return $this;
     }

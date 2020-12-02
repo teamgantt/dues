@@ -5,6 +5,7 @@ namespace TeamGantt\Dues\Processor\Braintree;
 use Braintree;
 use TeamGantt\Dues\Arr;
 use TeamGantt\Dues\Exception\UnknownStatusException;
+use TeamGantt\Dues\Model\Money;
 use TeamGantt\Dues\Model\PaymentMethod\Token;
 use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Price;
@@ -81,6 +82,7 @@ class SubscriptionMapper
     public function fromResult(Braintree\Subscription $result): Subscription
     {
         $builder = new SubscriptionBuilder();
+        $balance = new Money(floatval($result->balance));
         $price = new Price(floatval($result->price));
         $status = $this->getStatusFromResult($result);
         $paymentMethod = new Token($result->paymentMethodToken);
@@ -91,6 +93,7 @@ class SubscriptionMapper
         $subscription = $builder
             ->withId($result->id)
             ->withStartDate($result->firstBillingDate)
+            ->withBalance($balance)
             ->withPrice($price)
             ->withStatus($status)
             ->withPaymentMethod($paymentMethod)

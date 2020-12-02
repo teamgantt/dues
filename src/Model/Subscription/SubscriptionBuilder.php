@@ -5,6 +5,7 @@ namespace TeamGantt\Dues\Model\Subscription;
 use DateTime;
 use TeamGantt\Dues\Model\Builder;
 use TeamGantt\Dues\Model\Customer;
+use TeamGantt\Dues\Model\Money;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Price;
@@ -34,6 +35,14 @@ class SubscriptionBuilder extends Builder
     public function withPrice(Price $price): self
     {
         return $this->with('price', $price);
+    }
+
+    /**
+     * @return SubscriptionBuilder
+     */
+    public function withBalance(Money $balance): self
+    {
+        return $this->with('balance', $balance);
     }
 
     /**
@@ -124,6 +133,7 @@ class SubscriptionBuilder extends Builder
             ->setStatus($this->get('status'))
             ->setCustomer($this->get('customer'))
             ->setPaymentMethod($this->get('paymentMethod'))
+            ->setBalance($this->get('balance'))
             ->setPlan($this->get('plan'));
 
         $addOns = $this->get('addOns') ?? [];
