@@ -39,14 +39,14 @@ class SubscriptionMapper
 
         unset($request['customer']);
 
-        return Arr::updateIn($request, [], function (array $r) use ($subscription) {
+        return Arr::updateIn($request, [], function (array $r) {
             $r['paymentMethodToken'] = $r['paymentMethodToken']['token'] ?? null;
             $r['planId'] = $r['planId']['id'] ?? null;
             if (isset($r['price'])) {
                 $r['price'] = $r['price']['amount'];
             }
-            $this->withModifiers($r, 'addOns', $subscription);
-            $this->withModifiers($r, 'discounts', $subscription);
+            $this->withModifiers($r, 'addOns');
+            $this->withModifiers($r, 'discounts');
 
             return $r;
         });
@@ -56,7 +56,7 @@ class SubscriptionMapper
      * @param mixed[] $request
      * @param string  $kind    - addOns|discounts
      */
-    private function withModifiers(array &$request, string $kind, Subscription $subscription): void
+    private function withModifiers(array &$request, string $kind): void
     {
         if (!isset($request[$kind])) {
             return;
