@@ -2,13 +2,10 @@
 
 namespace TeamGantt\Dues\Model;
 
-use TeamGantt\Dues\Contracts\Arrayable;
 use TeamGantt\Dues\Exception\InvalidPriceException;
 
-class Price implements Arrayable
+class Price extends Money
 {
-    protected float $amount;
-
     /**
      * Price constructor.
      */
@@ -18,18 +15,6 @@ class Price implements Arrayable
             throw new InvalidPriceException("Prices cannot be negative. Expected price > 0, but received $amount");
         }
 
-        $this->amount = $amount;
-    }
-
-    public function getAmount(): float
-    {
-        return $this->amount;
-    }
-
-    public function toArray(): array
-    {
-        return [
-            'amount' => $this->getAmount(),
-        ];
+        parent::__construct($amount);
     }
 }
