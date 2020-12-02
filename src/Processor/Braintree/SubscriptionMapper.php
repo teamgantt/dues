@@ -39,8 +39,8 @@ class SubscriptionMapper
         unset($request['customer']);
 
         return Arr::updateIn($request, [], function (array $r) use ($subscription) {
-            $r['paymentMethodToken'] = $r['paymentMethodToken']['token'];
-            $r['planId'] = $r['planId']['id'];
+            $r['paymentMethodToken'] = $r['paymentMethodToken']['token'] ?? null;
+            $r['planId'] = $r['planId']['id'] ?? null;
             if (isset($r['price'])) {
                 $r['price'] = $r['price']['amount'];
             }

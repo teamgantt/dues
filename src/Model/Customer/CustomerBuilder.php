@@ -61,20 +61,18 @@ class CustomerBuilder extends Builder
 
     public function build(): Customer
     {
-        ['firstName' => $fn, 'lastName' => $ln, 'emailAddress' => $ea, 'id' => $id, 'paymentMethods' => $paymentMethods] = $this->data;
+        $customer = (new Customer($this->get('id')))
+            ->setFirstName($this->get('firstName'))
+            ->setLastName($this->get('lastName'))
+            ->setEmailAddress($this->get('emailAddress'));
 
-        $this->data = [];
-
-        $customer = (new Customer($id))
-            ->setFirstName($fn)
-            ->setLastName($ln)
-            ->setEmailAddress($ea);
-
-        $paymentMethods ??= [];
+        $paymentMethods = $this->get('paymentMethods') ?? [];
 
         foreach ($paymentMethods as $paymentMethod) {
             $customer->addPaymentMethod($paymentMethod);
         }
+
+        $this->reset();
 
         return $customer;
     }

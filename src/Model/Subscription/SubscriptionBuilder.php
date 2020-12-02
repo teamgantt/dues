@@ -118,26 +118,25 @@ class SubscriptionBuilder extends Builder
 
     public function build(): Subscription
     {
-        ['id' => $id, 'startDate' => $start, 'price' => $price, 'status' => $status, 'customer' => $customer, 'paymentMethod' => $paymentMethod, 'plan' => $plan, 'addOns' => $addOns, 'discounts' => $discounts] = $this->data;
-        $this->data = [];
+        $subscription = (new Subscription($this->get('id')))
+            ->setStartDate($this->get('startDate'))
+            ->setPrice($this->get('price'))
+            ->setStatus($this->get('status'))
+            ->setCustomer($this->get('customer'))
+            ->setPaymentMethod($this->get('paymentMethod'))
+            ->setPlan($this->get('plan'));
 
-        $subscription = (new Subscription($id))
-            ->setStartDate($start)
-            ->setPrice($price)
-            ->setStatus($status)
-            ->setCustomer($customer)
-            ->setPaymentMethod($paymentMethod)
-            ->setPlan($plan);
-
-        $addOns = $addOns ?? [];
+        $addOns = $this->get('addOns') ?? [];
         foreach ($addOns as $addOn) {
             $subscription->addAddOn($addOn);
         }
 
-        $discounts = $discounts ?? [];
+        $discounts = $this->get('discounts') ?? [];
         foreach ($discounts as $discount) {
             $subscription->addDiscount($discount);
         }
+
+        $this->reset();
 
         return $subscription;
     }
