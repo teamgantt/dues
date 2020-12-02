@@ -489,6 +489,29 @@ trait Subscription
     }
 
     /**
+     * @dataProvider subscriptionProvider
+     * @group integration
+     */
+    public function testCancelSubscriptions(callable $subscriptionFactory)
+    {
+        $subscription = $subscriptionFactory($this->dues);
+        $subscriptions = $this->dues->cancelSubscriptions([$subscription]);
+        $this->assertEquals(Status::canceled(), $subscriptions[0]->getStatus());
+    }
+
+    /**
+     * @dataProvider subscriptionProvider
+     * @group integration
+     */
+    public function testCancelSubscriptionsWithCanceledSubscriptions(callable $subscriptionFactory)
+    {
+        $subscription = $subscriptionFactory($this->dues);
+        $subscription = $this->dues->cancelSubscription($subscription->getId());
+        $subscriptions = $this->dues->cancelSubscriptions([$subscription]);
+        $this->assertEmpty($subscriptions);
+    }
+
+    /**
      * @group integration
      */
     public function testListingAddons()
