@@ -2,7 +2,6 @@
 
 namespace TeamGantt\Dues\Processor;
 
-use Braintree\Customer as BraintreeCustomer;
 use Braintree\Error\Codes;
 use Braintree\Gateway as BraintreeGateway;
 use Braintree\Result\Error;
@@ -11,11 +10,6 @@ use Exception;
 use RuntimeException;
 use TeamGantt\Dues\Arr;
 use TeamGantt\Dues\Contracts\SubscriptionGateway;
-use TeamGantt\Dues\Exception\CustomerNotCreatedException;
-use TeamGantt\Dues\Exception\CustomerNotDeletedException;
-use TeamGantt\Dues\Exception\CustomerNotUpdatedException;
-use TeamGantt\Dues\Exception\InvariantException;
-use TeamGantt\Dues\Exception\PaymentMethodNotCreatedException;
 use TeamGantt\Dues\Exception\SubscriptionNotCanceledException;
 use TeamGantt\Dues\Exception\SubscriptionNotCreatedException;
 use TeamGantt\Dues\Exception\SubscriptionNotUpdatedException;
@@ -34,14 +28,16 @@ use TeamGantt\Dues\Processor\Braintree\Mapper\DiscountMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\PaymentMethodMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\PlanMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\SubscriptionMapper;
+use TeamGantt\Dues\Processor\Braintree\Repository\CustomerRepository;
+use TeamGantt\Dues\Processor\Braintree\Repository\PaymentMethodRepository;
 
 class Braintree implements SubscriptionGateway
 {
     private BraintreeGateway $braintree;
 
-    private CustomerMapper $customerMapper;
+    private PaymentMethodRepository $paymentMethods;
 
-    private PaymentMethodMapper $paymentMethodMapper;
+    private CustomerRepository $customers;
 
     private SubscriptionMapper $subscriptionMapper;
 
@@ -59,8 +55,13 @@ class Braintree implements SubscriptionGateway
     public function __construct(array $config)
     {
         $this->braintree = new BraintreeGateway($config);
-        $this->paymentMethodMapper = new PaymentMethodMapper();
-        $this->customerMapper = new CustomerMapper($this->paymentMethodMapper);
+
+        $paymentMethodMapper = new PaymentMethodMapper();
+        $customerMapper = new CustomerMapper($paymentMethodMapper);
+
+        $this->paymentMethods = new PaymentMethodRepository($this->braintree, $paymentMethodMapper);
+        $this->customers = new CustomerRepository($this->braintree, $customerMapper, $this->paymentMethods);
+
         $this->addOnMapper = new AddOnMapper();
         $this->discountMapper = new DiscountMapper();
         $this->subscriptionMapper = new SubscriptionMapper($this->addOnMapper, $this->discountMapper);
@@ -69,93 +70,22 @@ class Braintree implements SubscriptionGateway
 
     public function createCustomer(Customer $customer): Customer
     {
-        $request = $this->customerMapper->toRequest($customer);
-
-        $result = $this
-            ->braintree
-            ->customer()
-            ->create($request);
-
-        if (!$result->success) {
-            $message = isset($result->message) ? $result->message : 'Unknown message';
-            throw new CustomerNotCreatedException($message);
-        }
-
-        if (!isset($result->customer)) {
-            throw new InvariantException('Result has no customer property');
-        }
-
-        $newCustomer = $this->customerMapper->fromResult($result->customer);
-
-        $newMethods = array_reduce(
-            $customer->getPaymentMethods(),
-            fn (array $r, PaymentMethod $m) => [...$r, $this->createPaymentMethod($m->setCustomer($newCustomer))],
-            []
-        );
-
-        return $newCustomer->setPaymentMethods($newMethods);
+        return $this->customers->add($customer);
     }
 
     public function updateCustomer(Customer $customer): Customer
     {
-        if ($customer->isNew()) {
-            throw new CustomerNotUpdatedException('Cannot update a new customer');
-        }
-
-        // Create any new payment methods
-        $allPaymentMethods = $customer->getPaymentMethods();
-        $paymentMethods = [];
-        foreach ($allPaymentMethods as $paymentMethod) {
-            if ($paymentMethod->isNew()) {
-                $paymentMethods[] = ($this->createPaymentMethod($paymentMethod))->setIsDefaultPaymentMethod($paymentMethod->isDefaultPaymentMethod());
-            } else {
-                $paymentMethods[] = $paymentMethod;
-            }
-        }
-        $customer->setPaymentMethods($paymentMethods);
-
-        $id = $customer->getId();
-
-        // Update the user @todo rollback payment methods
-        $request = $this->customerMapper->toRequest($customer);
-        $result = $this
-            ->braintree
-            ->customer()
-            ->update($id, $request);
-
-        if (!$result->success) {
-            $message = isset($result->message) ? $result->message : 'Unknown message';
-            throw new CustomerNotUpdatedException($message);
-        }
-
-        $customer = $this->findCustomerById($id);
-        if (null === $customer) {
-            throw new UnknownException('Could not find updated customer');
-        }
-
-        return $customer;
+        return $this->customers->update($customer);
     }
 
     public function deleteCustomer(string $customerId): void
     {
-        try {
-            $result = $this->braintree->customer()->delete($customerId);
-            if (!$result->success) {
-                $message = isset($result->message) ? $result->message : 'Unknown message';
-                throw new CustomerNotDeletedException($message);
-            }
-        } catch (Exception $e) {
-            throw new CustomerNotDeletedException($e->getMessage());
-        }
+        $this->customers->remove($customerId);
     }
 
     public function findCustomerById(string $customerId): ?Customer
     {
-        if ($customerResult = $this->findBraintreeCustomerById($customerId)) {
-            return $this->customerMapper->fromResult($customerResult);
-        }
-
-        return null;
+        return $this->customers->find($customerId);
     }
 
     /**
@@ -165,7 +95,7 @@ class Braintree implements SubscriptionGateway
      */
     public function findSubscriptionsByCustomerId(string $customerId, array $statuses = []): array
     {
-        $customerResult = $this->findBraintreeCustomerById($customerId);
+        $customerResult = $this->customers->findBraintreeCustomer($customerId);
 
         if (null === $customerResult) {
             return [];
@@ -180,26 +110,6 @@ class Braintree implements SubscriptionGateway
         }
 
         return array_values(array_filter($subscriptions, fn (Subscription $sub) => in_array($sub->getStatus(), $statuses)));
-    }
-
-    private function findBraintreeCustomerById(string $customerId): ?BraintreeCustomer
-    {
-        try {
-            $result = $this
-                ->braintree
-                ->customer()
-                ->find($customerId);
-
-            if (is_bool($result)) {
-                throw new UnknownException('Customer find request failed');
-            }
-
-            return $result;
-        } catch (UnknownException $e) {
-            throw $e;
-        } catch (Exception $e) {
-            return null;
-        }
     }
 
     public function findSubscriptionById(string $subscriptionId): ?Subscription
@@ -253,18 +163,7 @@ class Braintree implements SubscriptionGateway
 
     public function createPaymentMethod(PaymentMethod $paymentMethod): Token
     {
-        $request = $this->paymentMethodMapper->toRequest($paymentMethod);
-
-        $result = $this
-            ->braintree
-            ->paymentMethod()
-            ->create($request);
-
-        if (!$result->success) {
-            throw new PaymentMethodNotCreatedException($result->message);
-        }
-
-        return $this->paymentMethodMapper->fromResult($result->paymentMethod);
+        return $this->paymentMethods->add($paymentMethod);
     }
 
     public function createSubscription(Subscription $subscription): Subscription
