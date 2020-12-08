@@ -26,14 +26,6 @@ abstract class Builder
         return isset($this->data['id']) ? $this->data['id'] : null;
     }
 
-    /**
-     * @return mixed
-     */
-    protected function get(string $key)
-    {
-        return $this->data[$key] ?? null;
-    }
-
     protected function reset(): void
     {
         $this->data = [];

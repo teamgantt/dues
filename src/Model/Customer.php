@@ -6,11 +6,11 @@ use TeamGantt\Dues\Contracts\Arrayable;
 
 class Customer extends Entity implements Arrayable
 {
-    protected string $firstName;
+    protected string $firstName = '';
 
-    protected string $lastName;
+    protected string $lastName = '';
 
-    protected string $emailAddress;
+    protected string $emailAddress = '';
 
     /**
      * @var PaymentMethod[]

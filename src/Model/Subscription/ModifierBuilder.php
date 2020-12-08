@@ -4,6 +4,7 @@ namespace TeamGantt\Dues\Model\Subscription;
 
 use TeamGantt\Dues\Model\Builder;
 use TeamGantt\Dues\Model\Price;
+use TeamGantt\Dues\Model\Price\NullPrice;
 
 abstract class ModifierBuilder extends Builder
 {
@@ -24,11 +25,11 @@ abstract class ModifierBuilder extends Builder
 
     protected function buildModifier(Modifier $modifier): void
     {
-        if (!empty($this->get('quantity'))) {
-            $modifier->setQuantity($this->get('quantity'));
+        if (isset($this->data['quantity'])) {
+            $modifier->setQuantity((int) $this->data['quantity']);
         }
 
-        $modifier->setPrice($this->get('price'));
+        $modifier->setPrice($this->data['price'] ?? new NullPrice());
 
         $this->reset();
     }

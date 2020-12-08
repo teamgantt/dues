@@ -114,8 +114,8 @@ trait Subscription
 
         $updated = $this->dues->updateSubscription($subscription);
 
-        $this->assertEquals($updated->getPlan()->getId(), 'test-plan-b-yearly');
-        $this->assertEquals($updated->getPrice()->getAmount(), $plan->getPrice()->getAmount());
+        $this->assertEquals('test-plan-b-yearly', $updated->getPlan()->getId());
+        $this->assertEquals($plan->getPrice()->getAmount(), $updated->getPrice()->getAmount());
         $previous = $subscription->toArray();
         $next = $updated->toArray();
         $this->assertEquals(Arr::dissoc($previous, ['plan', 'price']), Arr::dissoc($next, ['plan', 'price']));
@@ -123,13 +123,14 @@ trait Subscription
 
     /**
      * @group integration
+     * @group focus
      * @dataProvider subscriptionProvider
      *
      * @return void
      */
     public function testUpdateSubscriptionPlanToPlanWithDifferentBillingCycle(callable $subscriptionFactory)
     {
-        $subscription = $subscriptionFactory($this->dues, null, fn (ModelSubscription $s) => $s->setStartDate(null));
+        $subscription = $subscriptionFactory($this->dues, null, fn (ModelSubscription $s) => $s->beginImmediately());
         $plan = $this->dues->findPlanById('test-plan-c-monthly');
         $subscription->setPlan($plan);
 
@@ -496,7 +497,7 @@ trait Subscription
     {
         $pending = $subscriptionFactory($this->dues); // create a pending subscription
         $customer = $pending->getCustomer();
-        $subscriptionFactory($this->dues, $customer, fn (ModelSubscription $sub) => $sub->setStartDate(null)); // create an active subscription
+        $subscriptionFactory($this->dues, $customer, fn (ModelSubscription $sub) => $sub->beginImmediately()); // create an active subscription
         $canceled = $subscriptionFactory($this->dues, $customer);
         $canceled = $this->dues->cancelSubscription($canceled->getId()); // create a canceled subscription
         $subscriptions = $this->dues->findSubscriptionsByCustomerId($customer->getId(), [Status::active(), Status::pending()]);
