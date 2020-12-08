@@ -32,6 +32,7 @@ use TeamGantt\Dues\Processor\Braintree\Mapper\PlanMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\SubscriptionMapper;
 use TeamGantt\Dues\Processor\Braintree\Repository\CustomerRepository;
 use TeamGantt\Dues\Processor\Braintree\Repository\PaymentMethodRepository;
+use TeamGantt\Dues\Processor\Braintree\Repository\PlanRepository;
 
 class Braintree implements SubscriptionGateway
 {
@@ -41,13 +42,13 @@ class Braintree implements SubscriptionGateway
 
     private CustomerRepository $customers;
 
+    private PlanRepository $plans;
+
     private SubscriptionMapper $subscriptionMapper;
 
     private AddOnMapper $addOnMapper;
 
     private DiscountMapper $discountMapper;
-
-    private PlanMapper $planMapper;
 
     /**
      * @param array<mixed> $config
@@ -58,16 +59,17 @@ class Braintree implements SubscriptionGateway
     {
         $this->braintree = new BraintreeGateway($config);
 
-        $paymentMethodMapper = new PaymentMethodMapper();
-        $customerMapper = new CustomerMapper($paymentMethodMapper);
-
-        $this->paymentMethods = new PaymentMethodRepository($this->braintree, $paymentMethodMapper);
-        $this->customers = new CustomerRepository($this->braintree, $customerMapper, $this->paymentMethods);
-
         $this->addOnMapper = new AddOnMapper();
         $this->discountMapper = new DiscountMapper();
         $this->subscriptionMapper = new SubscriptionMapper($this->addOnMapper, $this->discountMapper);
-        $this->planMapper = new PlanMapper($this->addOnMapper, $this->discountMapper);
+
+        $paymentMethodMapper = new PaymentMethodMapper();
+        $customerMapper = new CustomerMapper($paymentMethodMapper);
+        $planMapper = new PlanMapper($this->addOnMapper, $this->discountMapper);
+
+        $this->paymentMethods = new PaymentMethodRepository($this->braintree, $paymentMethodMapper);
+        $this->customers = new CustomerRepository($this->braintree, $customerMapper, $this->paymentMethods);
+        $this->plans = new PlanRepository($this->braintree, $planMapper);
     }
 
     public function createCustomer(Customer $customer): Customer
@@ -305,16 +307,7 @@ class Braintree implements SubscriptionGateway
 
     public function listPlans(): array
     {
-        $results = $this
-            ->braintree
-            ->plan()
-            ->all();
-
-        return array_reduce($results, function ($r, $i) {
-            $plan = $this->planMapper->fromResult($i);
-
-            return [...$r, $plan];
-        }, []);
+        return $this->plans->all();
     }
 
     public function listAddOns(): array
@@ -339,15 +332,7 @@ class Braintree implements SubscriptionGateway
 
     public function findPlanById(string $planId): ?Plan
     {
-        $plans = $this->listPlans();
-
-        foreach ($plans as $plan) {
-            if ($plan->getId() === $planId) {
-                return $plan;
-            }
-        }
-
-        return null;
+        return $this->plans->find($planId);
     }
 
     /**
