@@ -20,11 +20,28 @@ class Plan extends Entity implements Arrayable
      */
     protected $discounts = [];
 
+    protected int $billingFrequency = 0;
+
     public function toArray(): array
     {
         return [
             'id' => $this->getId(),
         ];
+    }
+
+    public function getBillingFrequency(): int
+    {
+        return $this->billingFrequency;
+    }
+
+    /**
+     * @return Plan
+     */
+    public function setBillingFrequency(int $frequency): self
+    {
+        $this->billingFrequency = $frequency;
+
+        return $this;
     }
 
     public function getPrice(): ?Price

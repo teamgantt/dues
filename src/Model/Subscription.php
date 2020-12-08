@@ -86,6 +86,10 @@ class Subscription extends Entity implements Arrayable
             $this->setPlan($plan);
         }
 
+        if ($balance = $other->getBalance()) {
+            $this->setBalance($balance);
+        }
+
         if (!empty($other->getAddOns())) {
             $this->setAddOns($other->getAddOns());
         }
@@ -93,6 +97,22 @@ class Subscription extends Entity implements Arrayable
         if (!empty($other->getDiscounts())) {
             $this->setDiscounts($other->getDiscounts());
         }
+
+        return $this;
+    }
+
+    /**
+     * Closing a subscription out sets plan, price, and modifier
+     * totals to zero values.
+     *
+     * @return Subscription
+     */
+    public function closeOut(): self
+    {
+        $this->setPlan(null);
+        $this->setPrice(new Price(0.0));
+        $this->setAddOns(new Modifiers($this));
+        $this->setDiscounts(new Modifiers($this));
 
         return $this;
     }

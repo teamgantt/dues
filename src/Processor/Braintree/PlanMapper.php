@@ -24,6 +24,7 @@ class PlanMapper
         $plan->setPrice(new Price((float) $result->price));
         $plan->setAddOns($this->addOnMapper->fromResults($result->addOns));
         $plan->setDiscounts($this->discountMapper->fromResults($result->discounts));
+        $plan->setBillingFrequency($result->billingFrequency);
 
         return $plan;
     }

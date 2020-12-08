@@ -12,6 +12,7 @@ use TeamGantt\Dues\Exception\SubscriptionNotUpdatedException;
 use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Price;
 use TeamGantt\Dues\Model\Subscription\AddOn;
+use TeamGantt\Dues\Model\Subscription as ModelSubscription;
 use TeamGantt\Dues\Model\Subscription\Discount;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Subscription\SubscriptionBuilder;
@@ -118,6 +119,27 @@ trait Subscription
         $previous = $subscription->toArray();
         $next = $updated->toArray();
         $this->assertEquals(Arr::dissoc($previous, ['plan', 'price']), Arr::dissoc($next, ['plan', 'price']));
+    }
+
+    /**
+     * @group integration
+     * @dataProvider subscriptionProvider
+     *
+     * @return void
+     */
+    public function testUpdateSubscriptionPlanToPlanWithDifferentBillingCycle(callable $subscriptionFactory)
+    {
+        $subscription = $subscriptionFactory($this->dues, null, fn (ModelSubscription $s) => $s->setStartDate(null));
+        $plan = $this->dues->findPlanById('test-plan-c-monthly');
+        $subscription->setPlan($plan);
+
+        $updated = $this->dues->updateSubscription($subscription);
+
+        $this->assertEquals('test-plan-c-monthly', $updated->getPlan()->getId());
+        $this->assertEquals($plan->getPrice()->getAmount(), $updated->getPrice()->getAmount());
+        $previous = $subscription->toArray();
+        $next = $updated->toArray();
+        $this->assertEquals(Arr::dissoc($previous, ['id', 'plan', 'price']), Arr::dissoc($next, ['id', 'plan', 'price']));
     }
 
     /**
@@ -464,6 +486,23 @@ trait Subscription
         $this->assertNotNull($customer);
         $subscriptions = $this->dues->findSubscriptionsByCustomerId($customer->getId());
         $this->assertCount(1, $subscriptions);
+    }
+
+    /**
+     * @dataProvider subscriptionProvider
+     * @group integration
+     */
+    public function testFindSubscriptionsByCustomerIdWithStatusFilter(callable $subscriptionFactory)
+    {
+        $pending = $subscriptionFactory($this->dues); // create a pending subscription
+        $customer = $pending->getCustomer();
+        $subscriptionFactory($this->dues, $customer, fn (ModelSubscription $sub) => $sub->setStartDate(null)); // create an active subscription
+        $canceled = $subscriptionFactory($this->dues, $customer);
+        $canceled = $this->dues->cancelSubscription($canceled->getId()); // create a canceled subscription
+        $subscriptions = $this->dues->findSubscriptionsByCustomerId($customer->getId(), [Status::active(), Status::pending()]);
+        $this->assertCount(2, $subscriptions);
+        $this->assertEquals(Status::pending(), $subscriptions[0]->getStatus());
+        $this->assertEquals(Status::active(), $subscriptions[1]->getStatus());
     }
 
     /**

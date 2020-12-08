@@ -7,6 +7,7 @@ use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Subscription;
+use TeamGantt\Dues\Model\Subscription\Status;
 
 /**
  * This trait exists to provide simple delegation to a SubscriptionGateway.
@@ -65,9 +66,14 @@ trait ProcessesSubscriptions
         return $this->gateway->findCustomerById($customerId);
     }
 
-    public function findSubscriptionsByCustomerId(string $customerId): array
+    /**
+     * @param Status[] $statuses
+     *
+     * @return Subscription[]
+     */
+    public function findSubscriptionsByCustomerId(string $customerId, array $statuses = []): array
     {
-        return $this->gateway->findSubscriptionsByCustomerId($customerId);
+        return $this->gateway->findSubscriptionsByCustomerId($customerId, $statuses);
     }
 
     public function findSubscriptionById(string $subscriptionId): ?Subscription
