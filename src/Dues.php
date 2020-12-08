@@ -43,7 +43,7 @@ class Dues implements SubscriptionGateway
             return $this->traitCreateSubscription($subscription);
         } catch (SubscriptionNotCreatedException $e) { //rollback any new customers
             if ($customer = $e->getCustomer()) {
-                $this->deleteCustomer($customer->getId() ?? '');
+                $this->deleteCustomer($customer->getId());
             }
             throw $e;
         }
@@ -68,7 +68,7 @@ class Dues implements SubscriptionGateway
             throw new CustomerNotUpdatedException('Failed to set default payment method for Customer');
         }
 
-        $subscriptions = $this->findSubscriptionsByCustomerId((string) $customer->getId());
+        $subscriptions = $this->findSubscriptionsByCustomerId($customer->getId());
         foreach ($subscriptions as $subscription) {
             if ($subscription->isNot(Status::active(), Status::pending(), Status::pastDue())) {
                 continue;

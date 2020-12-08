@@ -123,7 +123,6 @@ trait Subscription
 
     /**
      * @group integration
-     * @group focus
      * @dataProvider subscriptionProvider
      *
      * @return void

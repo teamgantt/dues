@@ -115,9 +115,6 @@ class Braintree implements SubscriptionGateway
         $customer->setPaymentMethods($paymentMethods);
 
         $id = $customer->getId();
-        if (null === $id) {
-            throw new UnknownException('Could not find customer ID');
-        }
 
         // Update the user @todo rollback payment methods
         $request = $this->customerMapper->toRequest($customer);
@@ -247,7 +244,7 @@ class Braintree implements SubscriptionGateway
         $canceled = [];
         foreach ($subscriptions as $subscription) {
             if ($subscription->isNot(Status::canceled(), Status::expired())) {
-                $canceled[] = $this->cancelSubscription($subscription->getId() ?? '');
+                $canceled[] = $this->cancelSubscription($subscription->getId());
             }
         }
 
@@ -276,7 +273,7 @@ class Braintree implements SubscriptionGateway
         $isNewCustomer = false;
 
         $plan = $subscription->getPlan();
-        $plan = $this->findPlanById((string) $plan->getId());
+        $plan = $this->findPlanById($plan->getId());
 
         if (null === $plan) {
             throw new SubscriptionNotCreatedException('Failed to fetch subscription plan');
@@ -331,13 +328,13 @@ class Braintree implements SubscriptionGateway
                 return $this->changeSubscriptionBillingCycle($subscription);
             }
 
-            $updated = $this->findSubscriptionById((string) $subscription->getId());
+            $updated = $this->findSubscriptionById($subscription->getId());
 
             if (null == $updated) {
                 throw new UnknownException('Failed to find updated Subscription');
             }
 
-            $newPlan = $this->findPlanById((string) $updated->getPlan()->getId());
+            $newPlan = $this->findPlanById($updated->getPlan()->getId());
 
             if (null !== $newPlan) {
                 $updated->setPlan($newPlan);
@@ -363,14 +360,14 @@ class Braintree implements SubscriptionGateway
             $message = isset($result->message) ? $result->message : 'An unknown update error occurred';
             throw new SubscriptionNotUpdatedException($message);
         }
-        $updated = $this->findSubscriptionById((string) $subscription->getId());
+        $updated = $this->findSubscriptionById($subscription->getId());
 
         if (null === $updated) {
             throw new UnknownException('Failed to fetch updated subscription');
         }
 
         // Cancel subscription
-        $canceled = $this->cancelSubscription((string) $updated->getId())
+        $canceled = $this->cancelSubscription($updated->getId())
             ->closeOut()
             ->setPrice(new NullPrice());
 

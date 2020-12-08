@@ -23,7 +23,7 @@ class Plan extends Entity implements Arrayable
 
     protected int $billingFrequency = 0;
 
-    public function __construct(?string $id = null)
+    public function __construct(string $id = '')
     {
         parent::__construct($id);
         $this->price = new NullPrice();

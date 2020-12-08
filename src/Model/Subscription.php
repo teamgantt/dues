@@ -32,7 +32,7 @@ class Subscription extends Entity implements Arrayable
 
     protected Modifiers $discounts;
 
-    public function __construct(?string $id = null)
+    public function __construct(string $id = '')
     {
         parent::__construct($id);
         $this->status = Status::initialized();
@@ -364,7 +364,7 @@ class Subscription extends Entity implements Arrayable
         $modifierDefaults = new Modifiers($this, $modifiers);
 
         foreach ($provided as $modifier) {
-            $default = $modifierDefaults->get($modifier->getId() ?? '');
+            $default = $modifierDefaults->get($modifier->getId());
 
             if (null === $default || $default->isEqualTo($modifier)) {
                 continue;
