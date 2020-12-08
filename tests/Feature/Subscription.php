@@ -137,9 +137,12 @@ trait Subscription
 
         $this->assertEquals('test-plan-c-monthly', $updated->getPlan()->getId());
         $this->assertEquals($plan->getPrice()->getAmount(), $updated->getPrice()->getAmount());
-        $previous = $subscription->toArray();
-        $next = $updated->toArray();
-        $this->assertEquals(Arr::dissoc($previous, ['id', 'plan', 'price']), Arr::dissoc($next, ['id', 'plan', 'price']));
+        $this->assertGreaterThan(0, count($updated->getDiscounts()));
+        $balance = $updated->getBalance()->getAmount();
+        $price = $updated->getPrice()->getAmount();
+        $addOnPrice = $updated->getAddOns()[0]->getPrice()->getAmount();
+        $rollover = $subscription->getBalance()->getAmount();
+        $this->assertEquals($rollover + $price + $addOnPrice, $balance);
     }
 
     /**

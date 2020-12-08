@@ -18,8 +18,10 @@ use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\PaymentMethod\Token;
 use TeamGantt\Dues\Model\Plan;
+use TeamGantt\Dues\Model\Price;
 use TeamGantt\Dues\Model\Price\NullPrice;
 use TeamGantt\Dues\Model\Subscription;
+use TeamGantt\Dues\Model\Subscription\Discount;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Subscription\SubscriptionBuilder;
 use TeamGantt\Dues\Processor\Braintree\Mapper\AddOnMapper;
@@ -277,14 +279,26 @@ class Braintree implements SubscriptionGateway
             ->withDiscounts($newDiscounts->getAll())
             ->withAddOns($newAddOns->getAll());
 
+        if ($balance = $canceled->getBalance()) {
+            $balanceDiscount = new Discount('balance', 1, new Price(abs($balance->getAmount())));
+
+            $builder->withDiscount($balanceDiscount);
+        }
+
         if (!empty($newPrice)) {
             $builder->withPrice($newPrice);
         }
 
-        $newSubscription = $builder
-            ->build()
+        $newSubscription = $builder->build();
+        $discounts = $newSubscription->getDiscounts();
+        $addOns = $newSubscription->getAddOns();
+        $newSubscription = $newSubscription
             ->merge($canceled)
-            ->setCustomer($subscription->getCustomer());
+            ->setCustomer($subscription->getCustomer())
+            ->setAddOns($addOns)
+            ->setDiscounts($discounts);
+
+        $subscription->merge($canceled);
 
         return $this->createSubscription($newSubscription);
     }
