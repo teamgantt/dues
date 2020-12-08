@@ -3,12 +3,13 @@
 namespace TeamGantt\Dues\Model;
 
 use TeamGantt\Dues\Contracts\Arrayable;
+use TeamGantt\Dues\Model\Price\NullPrice;
 use TeamGantt\Dues\Model\Subscription\AddOn;
 use TeamGantt\Dues\Model\Subscription\Discount;
 
 class Plan extends Entity implements Arrayable
 {
-    protected ?Price $price = null;
+    protected Price $price;
 
     /**
      * @var AddOn[]
@@ -21,6 +22,12 @@ class Plan extends Entity implements Arrayable
     protected $discounts = [];
 
     protected int $billingFrequency = 0;
+
+    public function __construct(string $id = '')
+    {
+        parent::__construct($id);
+        $this->price = new NullPrice();
+    }
 
     public function toArray(): array
     {
@@ -44,12 +51,12 @@ class Plan extends Entity implements Arrayable
         return $this;
     }
 
-    public function getPrice(): ?Price
+    public function getPrice(): Price
     {
         return $this->price;
     }
 
-    public function setPrice(?Price $price): self
+    public function setPrice(Price $price): self
     {
         $this->price = $price;
 

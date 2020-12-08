@@ -3,8 +3,8 @@
 namespace TeamGantt\Dues;
 
 use TeamGantt\Dues\Contracts\SubscriptionGateway;
+use TeamGantt\Dues\Exception\CustomerNotUpdatedException;
 use TeamGantt\Dues\Exception\SubscriptionNotCreatedException;
-use TeamGantt\Dues\Exception\UnknownException;
 use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\Subscription;
@@ -43,7 +43,7 @@ class Dues implements SubscriptionGateway
             return $this->traitCreateSubscription($subscription);
         } catch (SubscriptionNotCreatedException $e) { //rollback any new customers
             if ($customer = $e->getCustomer()) {
-                $this->deleteCustomer($customer->getId() ?? '');
+                $this->deleteCustomer($customer->getId());
             }
             throw $e;
         }
@@ -63,13 +63,12 @@ class Dues implements SubscriptionGateway
 
         // Update all subscriptions with the new payment method
         $paymentMethod = $customer->getDefaultPaymentMethod();
-        $customerId = $customer->getId();
 
-        if (null === $customerId) {
-            throw new UnknownException('Could not access customer ID');
+        if (null === $paymentMethod) {
+            throw new CustomerNotUpdatedException('Failed to set default payment method for Customer');
         }
 
-        $subscriptions = $this->findSubscriptionsByCustomerId($customerId);
+        $subscriptions = $this->findSubscriptionsByCustomerId($customer->getId());
         foreach ($subscriptions as $subscription) {
             if ($subscription->isNot(Status::active(), Status::pending(), Status::pastDue())) {
                 continue;

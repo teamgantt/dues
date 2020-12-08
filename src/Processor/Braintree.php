@@ -24,6 +24,7 @@ use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\PaymentMethod\Token;
 use TeamGantt\Dues\Model\Plan;
+use TeamGantt\Dues\Model\Price\NullPrice;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Subscription\SubscriptionBuilder;
@@ -114,9 +115,6 @@ class Braintree implements SubscriptionGateway
         $customer->setPaymentMethods($paymentMethods);
 
         $id = $customer->getId();
-        if (null === $id) {
-            throw new UnknownException('Could not find customer ID');
-        }
 
         // Update the user @todo rollback payment methods
         $request = $this->customerMapper->toRequest($customer);
@@ -246,7 +244,7 @@ class Braintree implements SubscriptionGateway
         $canceled = [];
         foreach ($subscriptions as $subscription) {
             if ($subscription->isNot(Status::canceled(), Status::expired())) {
-                $canceled[] = $this->cancelSubscription($subscription->getId() ?? '');
+                $canceled[] = $this->cancelSubscription($subscription->getId());
             }
         }
 
@@ -275,15 +273,15 @@ class Braintree implements SubscriptionGateway
         $isNewCustomer = false;
 
         $plan = $subscription->getPlan();
+        $plan = $this->findPlanById($plan->getId());
 
         if (null === $plan) {
-            throw new SubscriptionNotCreatedException('Cannot create Subscription without a Plan');
+            throw new SubscriptionNotCreatedException('Failed to fetch subscription plan');
         }
 
-        $plan = $this->findPlanById($plan->getId() ?? '');
         $subscription->setPlan($plan);
 
-        if ($customer && $customer->isNew()) {
+        if ($customer->isNew()) {
             $isNewCustomer = true;
             $subscription->setCustomer($this->createCustomer($customer));
         }
@@ -299,7 +297,9 @@ class Braintree implements SubscriptionGateway
         if ($result->success) {
             $newSubscription = $this->subscriptionMapper->fromResult($result->subscription);
 
-            return $newSubscription->setCustomer($subscription->getCustomer());
+            return $newSubscription
+                ->setCustomer($subscription->getCustomer())
+                ->resetPlan($plan);
         }
 
         if (!$isNewCustomer) {
@@ -328,10 +328,16 @@ class Braintree implements SubscriptionGateway
                 return $this->changeSubscriptionBillingCycle($subscription);
             }
 
-            $updated = $this->findSubscriptionById($subscription->getId() ?? '');
+            $updated = $this->findSubscriptionById($subscription->getId());
 
             if (null == $updated) {
                 throw new UnknownException('Failed to find updated Subscription');
+            }
+
+            $newPlan = $this->findPlanById($updated->getPlan()->getId());
+
+            if (null !== $newPlan) {
+                $updated->setPlan($newPlan);
             }
 
             return $subscription->merge($updated);
@@ -342,15 +348,10 @@ class Braintree implements SubscriptionGateway
 
     private function changeSubscriptionBillingCycle(Subscription $subscription): Subscription
     {
-        $customer = $subscription->getCustomer();
         $newPlan = $subscription->getPlan();
         $newPrice = $subscription->getPrice();
         $newAddOns = $subscription->getAddOns();
         $newDiscounts = $subscription->getDiscounts();
-
-        if (!isset($newPlan, $customer)) {
-            throw new SubscriptionNotUpdatedException('Cannot change subscription billing cycle with null plan or customer');
-        }
 
         // Zero out subscription to get a balance
         $subscription->closeOut();
@@ -359,21 +360,21 @@ class Braintree implements SubscriptionGateway
             $message = isset($result->message) ? $result->message : 'An unknown update error occurred';
             throw new SubscriptionNotUpdatedException($message);
         }
-        $updated = $this->findSubscriptionById((string) $subscription->getId());
+        $updated = $this->findSubscriptionById($subscription->getId());
 
         if (null === $updated) {
             throw new UnknownException('Failed to fetch updated subscription');
         }
 
         // Cancel subscription
-        $canceled = $this->cancelSubscription((string) $updated->getId())
+        $canceled = $this->cancelSubscription($updated->getId())
             ->closeOut()
-            ->setPrice(null);
+            ->setPrice(new NullPrice());
 
         // Purchase new subscription, applying balance from previous subscription.
         $builder = (new SubscriptionBuilder())
             ->withPlan($newPlan)
-            ->withCustomer($customer)
+            ->withCustomer($subscription->getCustomer())
             ->withDiscounts($newDiscounts->getAll())
             ->withAddOns($newAddOns->getAll());
 
@@ -381,9 +382,12 @@ class Braintree implements SubscriptionGateway
             $builder->withPrice($newPrice);
         }
 
-        $newSubscription = $builder->build();
+        $newSubscription = $builder
+            ->build()
+            ->merge($canceled)
+            ->setCustomer($subscription->getCustomer());
 
-        return $this->createSubscription($newSubscription->merge($canceled));
+        return $this->createSubscription($newSubscription);
     }
 
     public function listPlans(): array

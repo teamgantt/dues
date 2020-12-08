@@ -21,17 +21,9 @@ abstract class Builder
         return $this;
     }
 
-    protected function getId(): ?string
+    protected function getId(): string
     {
-        return isset($this->data['id']) ? $this->data['id'] : null;
-    }
-
-    /**
-     * @return mixed
-     */
-    protected function get(string $key)
-    {
-        return $this->data[$key] ?? null;
+        return isset($this->data['id']) ? $this->data['id'] : '';
     }
 
     protected function reset(): void

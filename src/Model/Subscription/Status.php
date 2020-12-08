@@ -10,6 +10,7 @@ use Spatie\Enum\Enum;
  * @method static self expired()
  * @method static self pastDue()
  * @method static self pending()
+ * @method static self initialized()
  */
 class Status extends Enum
 {

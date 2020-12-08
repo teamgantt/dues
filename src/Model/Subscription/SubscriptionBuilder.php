@@ -8,7 +8,9 @@ use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\Money;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\Plan;
+use TeamGantt\Dues\Model\Plan\NullPlan;
 use TeamGantt\Dues\Model\Price;
+use TeamGantt\Dues\Model\Price\NullPrice;
 use TeamGantt\Dues\Model\Subscription;
 
 class SubscriptionBuilder extends Builder
@@ -127,25 +129,34 @@ class SubscriptionBuilder extends Builder
 
     public function build(): Subscription
     {
-        $subscription = (new Subscription($this->get('id')))
-            ->setStartDate($this->get('startDate'))
-            ->setPrice($this->get('price'))
-            ->setStatus($this->get('status'))
-            ->setCustomer($this->get('customer'))
-            ->setPaymentMethod($this->get('paymentMethod'))
-            ->setBalance($this->get('balance'));
+        $subscription = (new Subscription($this->getId()))
+            ->setPrice($this->data['price'] ?? new NullPrice())
+            ->setStatus($this->data['status'] ?? Status::initialized())
+            ->setCustomer($this->data['customer'] ?? new Customer());
 
-        $addOns = $this->get('addOns') ?? [];
+        if (isset($this->data['startDate'])) {
+            $subscription->setStartDate($this->data['startDate']);
+        }
+
+        if (isset($this->data['paymentMethod'])) {
+            $subscription->setPaymentMethod($this->data['paymentMethod']);
+        }
+
+        if (isset($this->data['balance'])) {
+            $subscription->setBalance($this->data['balance']);
+        }
+
+        $addOns = $this->data['addOns'] ?? [];
         foreach ($addOns as $addOn) {
             $subscription->addAddOn($addOn);
         }
 
-        $discounts = $this->get('discounts') ?? [];
+        $discounts = $this->data['discounts'] ?? [];
         foreach ($discounts as $discount) {
             $subscription->addDiscount($discount);
         }
 
-        $subscription->setPlan($this->get('plan'));
+        $subscription->setPlan($this->data['plan'] ?? new NullPlan());
 
         $this->reset();
 

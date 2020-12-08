@@ -5,18 +5,19 @@ namespace TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Contracts\Arrayable;
 use TeamGantt\Dues\Model\Entity;
 use TeamGantt\Dues\Model\Price;
+use TeamGantt\Dues\Model\Price\NullPrice;
 
 abstract class Modifier extends Entity implements Arrayable
 {
-    protected ?Price $price = null;
+    protected Price $price;
 
     protected ?int $quantity = null;
 
-    public function __construct(?string $id = null, ?int $quantity = null, ?Price $price = null)
+    public function __construct(string $id = '', ?int $quantity = null, ?Price $price = null)
     {
         parent::__construct($id);
         $this->quantity = $quantity;
-        $this->price = $price;
+        $this->price = $price ?? new NullPrice();
     }
 
     public function getPrice(): ?Price
@@ -24,7 +25,7 @@ abstract class Modifier extends Entity implements Arrayable
         return $this->price;
     }
 
-    public function setPrice(?Price $price): Modifier
+    public function setPrice(Price $price): Modifier
     {
         $this->price = $price;
 
@@ -36,7 +37,7 @@ abstract class Modifier extends Entity implements Arrayable
         return $this->quantity;
     }
 
-    public function setQuantity(?int $quantity): Modifier
+    public function setQuantity(int $quantity): Modifier
     {
         $this->quantity = $quantity;
 
