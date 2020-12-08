@@ -28,12 +28,12 @@ use TeamGantt\Dues\Model\Price\NullPrice;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Subscription\SubscriptionBuilder;
-use TeamGantt\Dues\Processor\Braintree\AddOnMapper;
-use TeamGantt\Dues\Processor\Braintree\CustomerMapper;
-use TeamGantt\Dues\Processor\Braintree\DiscountMapper;
-use TeamGantt\Dues\Processor\Braintree\PaymentMethodMapper;
-use TeamGantt\Dues\Processor\Braintree\PlanMapper;
-use TeamGantt\Dues\Processor\Braintree\SubscriptionMapper;
+use TeamGantt\Dues\Processor\Braintree\Mapper\AddOnMapper;
+use TeamGantt\Dues\Processor\Braintree\Mapper\CustomerMapper;
+use TeamGantt\Dues\Processor\Braintree\Mapper\DiscountMapper;
+use TeamGantt\Dues\Processor\Braintree\Mapper\PaymentMethodMapper;
+use TeamGantt\Dues\Processor\Braintree\Mapper\PlanMapper;
+use TeamGantt\Dues\Processor\Braintree\Mapper\SubscriptionMapper;
 
 class Braintree implements SubscriptionGateway
 {

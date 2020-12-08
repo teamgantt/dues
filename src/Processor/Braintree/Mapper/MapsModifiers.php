@@ -1,6 +1,6 @@
 <?php
 
-namespace TeamGantt\Dues\Processor\Braintree;
+namespace TeamGantt\Dues\Processor\Braintree\Mapper;
 
 use Braintree\AddOn;
 use Braintree\Discount;
