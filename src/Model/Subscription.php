@@ -276,6 +276,14 @@ class Subscription extends Entity implements Arrayable
         return $this;
     }
 
+    /**
+     * @return Subscription
+     */
+    public function cancel(): self
+    {
+        return $this->setStatus(Status::canceled());
+    }
+
     public function getCustomer(): Customer
     {
         return $this->customer;

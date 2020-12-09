@@ -2,28 +2,14 @@
 
 namespace TeamGantt\Dues\Processor;
 
-use Braintree\Error\Codes;
 use Braintree\Gateway as BraintreeGateway;
-use Braintree\Result\Error;
-use Braintree\Result\Successful;
-use Exception;
-use RuntimeException;
-use TeamGantt\Dues\Arr;
 use TeamGantt\Dues\Contracts\SubscriptionGateway;
-use TeamGantt\Dues\Exception\SubscriptionNotCanceledException;
-use TeamGantt\Dues\Exception\SubscriptionNotCreatedException;
-use TeamGantt\Dues\Exception\SubscriptionNotUpdatedException;
-use TeamGantt\Dues\Exception\UnknownException;
 use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\PaymentMethod\Token;
 use TeamGantt\Dues\Model\Plan;
-use TeamGantt\Dues\Model\Price;
-use TeamGantt\Dues\Model\Price\NullPrice;
 use TeamGantt\Dues\Model\Subscription;
-use TeamGantt\Dues\Model\Subscription\Discount;
 use TeamGantt\Dues\Model\Subscription\Status;
-use TeamGantt\Dues\Model\Subscription\SubscriptionBuilder;
 use TeamGantt\Dues\Processor\Braintree\Mapper\AddOnMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\CustomerMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\DiscountMapper;
@@ -35,11 +21,10 @@ use TeamGantt\Dues\Processor\Braintree\Repository\CustomerRepository;
 use TeamGantt\Dues\Processor\Braintree\Repository\DiscountRepository;
 use TeamGantt\Dues\Processor\Braintree\Repository\PaymentMethodRepository;
 use TeamGantt\Dues\Processor\Braintree\Repository\PlanRepository;
+use TeamGantt\Dues\Processor\Braintree\Repository\SubscriptionRepository;
 
 class Braintree implements SubscriptionGateway
 {
-    private BraintreeGateway $braintree;
-
     private PaymentMethodRepository $paymentMethods;
 
     private CustomerRepository $customers;
@@ -50,9 +35,7 @@ class Braintree implements SubscriptionGateway
 
     private DiscountRepository $discounts;
 
-    private SubscriptionMapper $subscriptionMapper;
-
-    private AddOnMapper $addOnMapper;
+    private SubscriptionRepository $subscriptions;
 
     /**
      * @param array<mixed> $config
@@ -61,21 +44,21 @@ class Braintree implements SubscriptionGateway
      */
     public function __construct(array $config)
     {
-        $this->braintree = new BraintreeGateway($config);
+        $braintree = new BraintreeGateway($config);
 
         $addOnMapper = new AddOnMapper();
         $discountMapper = new DiscountMapper();
-        $this->subscriptionMapper = new SubscriptionMapper($addOnMapper, $discountMapper);
-
+        $subscriptionMapper = new SubscriptionMapper($addOnMapper, $discountMapper);
         $paymentMethodMapper = new PaymentMethodMapper();
         $customerMapper = new CustomerMapper($paymentMethodMapper);
         $planMapper = new PlanMapper($addOnMapper, $discountMapper);
 
-        $this->paymentMethods = new PaymentMethodRepository($this->braintree, $paymentMethodMapper);
-        $this->customers = new CustomerRepository($this->braintree, $customerMapper, $this->paymentMethods);
-        $this->plans = new PlanRepository($this->braintree, $planMapper);
-        $this->discounts = new DiscountRepository($this->braintree, $discountMapper);
-        $this->addOns = new AddOnRepository($this->braintree, $addOnMapper);
+        $this->paymentMethods = new PaymentMethodRepository($braintree, $paymentMethodMapper);
+        $this->customers = new CustomerRepository($braintree, $customerMapper, $this->paymentMethods);
+        $this->plans = new PlanRepository($braintree, $planMapper);
+        $this->discounts = new DiscountRepository($braintree, $discountMapper);
+        $this->addOns = new AddOnRepository($braintree, $addOnMapper);
+        $this->subscriptions = new SubscriptionRepository($braintree, $subscriptionMapper, $this->customers, $this->plans);
     }
 
     public function createCustomer(Customer $customer): Customer
@@ -105,53 +88,19 @@ class Braintree implements SubscriptionGateway
      */
     public function findSubscriptionsByCustomerId(string $customerId, array $statuses = []): array
     {
-        $customerResult = $this->customers->findBraintreeCustomer($customerId);
-
-        if (null === $customerResult) {
-            return [];
-        }
-
-        $subscriptions = Arr::mapcat($customerResult->paymentMethods, function ($pm) {
-            return array_map([$this->subscriptionMapper, 'fromResult'], $pm->subscriptions);
-        });
-
-        if (empty($statuses)) {
-            return $subscriptions;
-        }
-
-        return array_values(array_filter($subscriptions, fn (Subscription $sub) => in_array($sub->getStatus(), $statuses)));
+        return $this->subscriptions->findByCustomerId($customerId, $statuses);
     }
 
     public function findSubscriptionById(string $subscriptionId): ?Subscription
     {
-        try {
-            $result = $this
-                ->braintree
-                ->subscription()
-                ->find($subscriptionId);
-
-            return $this->subscriptionMapper->fromResult($result);
-        } catch (Exception $e) {
-            return null;
-        }
+        return $this->subscriptions->find($subscriptionId);
     }
 
     public function cancelSubscription(string $subscriptionId): Subscription
     {
-        try {
-            $this
-                ->braintree
-                ->subscription()
-                ->cancel($subscriptionId);
+        $subscription = (new Subscription($subscriptionId))->setStatus(Status::canceled());
 
-            if ($result = $this->findSubscriptionById($subscriptionId)) {
-                return $result;
-            }
-
-            throw new RuntimeException('Subscription not found');
-        } catch (Exception $e) {
-            throw new SubscriptionNotCanceledException($e->getMessage());
-        }
+        return $this->subscriptions->update($subscription);
     }
 
     /**
@@ -178,137 +127,12 @@ class Braintree implements SubscriptionGateway
 
     public function createSubscription(Subscription $subscription): Subscription
     {
-        $customer = $subscription->getCustomer();
-        $isNewCustomer = false;
-
-        $plan = $subscription->getPlan();
-        $plan = $this->findPlanById($plan->getId());
-
-        if (null === $plan) {
-            throw new SubscriptionNotCreatedException('Failed to fetch subscription plan');
-        }
-
-        $subscription->setPlan($plan);
-
-        if ($customer->isNew()) {
-            $isNewCustomer = true;
-            $subscription->setCustomer($this->createCustomer($customer));
-        }
-
-        $request = $this->subscriptionMapper->toRequest($subscription);
-        $request = Arr::dissoc($request, ['id', 'status']);
-
-        $result = $this
-            ->braintree
-            ->subscription()
-            ->create($request);
-
-        if ($result->success) {
-            $newSubscription = $this->subscriptionMapper->fromResult($result->subscription);
-
-            return $newSubscription
-                ->setCustomer($subscription->getCustomer())
-                ->resetPlan($plan);
-        }
-
-        if (!$isNewCustomer) {
-            throw new SubscriptionNotCreatedException($result->message);
-        }
-
-        throw new SubscriptionNotCreatedException($result->message, $subscription->getCustomer());
+        return $this->subscriptions->add($subscription);
     }
 
     public function updateSubscription(Subscription $subscription): Subscription
     {
-        try {
-            $result = $this->doBraintreeUpdate($subscription);
-
-            if (!$result->success && $result instanceof Error) {
-                $isBillingCycleError = !empty(array_filter(
-                    $result->errors->deepAll(),
-                    fn ($error) => Codes::SUBSCRIPTION_PLAN_BILLING_FREQUENCY_CANNOT_BE_UPDATED === $error->code
-                ));
-
-                if (!$isBillingCycleError) {
-                    $message = isset($result->message) ? $result->message : 'An unknown update error occurred';
-                    throw new SubscriptionNotUpdatedException($message);
-                }
-
-                return $this->changeSubscriptionBillingCycle($subscription);
-            }
-
-            $updated = $this->findSubscriptionById($subscription->getId());
-
-            if (null == $updated) {
-                throw new UnknownException('Failed to find updated Subscription');
-            }
-
-            $newPlan = $this->findPlanById($updated->getPlan()->getId());
-
-            if (null !== $newPlan) {
-                $updated->setPlan($newPlan);
-            }
-
-            return $subscription->merge($updated);
-        } catch (Exception $e) {
-            throw new SubscriptionNotUpdatedException($e->getMessage());
-        }
-    }
-
-    private function changeSubscriptionBillingCycle(Subscription $subscription): Subscription
-    {
-        $newPlan = $subscription->getPlan();
-        $newPrice = $subscription->getPrice();
-        $newAddOns = $subscription->getAddOns();
-        $newDiscounts = $subscription->getDiscounts();
-
-        // Zero out subscription to get a balance
-        $subscription->closeOut();
-        $result = $this->doBraintreeUpdate($subscription);
-        if (!$result->success) {
-            $message = isset($result->message) ? $result->message : 'An unknown update error occurred';
-            throw new SubscriptionNotUpdatedException($message);
-        }
-        $updated = $this->findSubscriptionById($subscription->getId());
-
-        if (null === $updated) {
-            throw new UnknownException('Failed to fetch updated subscription');
-        }
-
-        // Cancel subscription
-        $canceled = $this->cancelSubscription($updated->getId())
-            ->closeOut()
-            ->setPrice(new NullPrice());
-
-        // Purchase new subscription, applying balance from previous subscription.
-        $builder = (new SubscriptionBuilder())
-            ->withPlan($newPlan)
-            ->withCustomer($subscription->getCustomer())
-            ->withDiscounts($newDiscounts->getAll())
-            ->withAddOns($newAddOns->getAll());
-
-        if ($balance = $canceled->getBalance()) {
-            $balanceDiscount = new Discount('balance', 1, new Price(abs($balance->getAmount())));
-
-            $builder->withDiscount($balanceDiscount);
-        }
-
-        if (!empty($newPrice)) {
-            $builder->withPrice($newPrice);
-        }
-
-        $newSubscription = $builder->build();
-        $discounts = $newSubscription->getDiscounts();
-        $addOns = $newSubscription->getAddOns();
-        $newSubscription = $newSubscription
-            ->merge($canceled)
-            ->setCustomer($subscription->getCustomer())
-            ->setAddOns($addOns)
-            ->setDiscounts($discounts);
-
-        $subscription->merge($canceled);
-
-        return $this->createSubscription($newSubscription);
+        return $this->subscriptions->update($subscription);
     }
 
     public function listPlans(): array
@@ -329,20 +153,5 @@ class Braintree implements SubscriptionGateway
     public function findPlanById(string $planId): ?Plan
     {
         return $this->plans->find($planId);
-    }
-
-    /**
-     * @return Successful|Error
-     */
-    private function doBraintreeUpdate(Subscription $subscription)
-    {
-        $request = $this->subscriptionMapper->toRequest($subscription);
-        $request = Arr::dissoc($request, ['firstBillingDate', 'status']);
-        $request['options'] = ['prorateCharges' => true];
-
-        return $this
-            ->braintree
-            ->subscription()
-            ->update($request['id'], $request);
     }
 }
