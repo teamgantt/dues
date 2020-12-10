@@ -317,6 +317,7 @@ trait Subscription
         $this->assertFalse($subscription->getCustomer()->isNew());
         $this->assertFalse($subscription->isNew());
         $this->assertEquals(Status::active(), $subscription->getStatus());
+        $this->assertNotEmpty($subscription->getTransactions());
     }
 
     /**

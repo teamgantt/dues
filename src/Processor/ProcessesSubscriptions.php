@@ -2,12 +2,14 @@
 
 namespace TeamGantt\Dues\Processor;
 
+use DateTime;
 use TeamGantt\Dues\Contracts\SubscriptionGateway;
 use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Model\Subscription\Status;
+use TeamGantt\Dues\Model\Transaction;
 
 /**
  * This trait exists to provide simple delegation to a SubscriptionGateway.
@@ -79,6 +81,14 @@ trait ProcessesSubscriptions
     public function findSubscriptionById(string $subscriptionId): ?Subscription
     {
         return $this->gateway->findSubscriptionById($subscriptionId);
+    }
+
+    /**
+     * @return Transaction[]
+     */
+    public function findTransactionsByCustomerId(string $customerId, ?DateTime $start = null, ?DateTime $end = null): array
+    {
+        return $this->gateway->findTransactionsByCustomerId($customerId, $start, $end);
     }
 
     public function listAddOns(): array

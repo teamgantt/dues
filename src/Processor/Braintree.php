@@ -3,6 +3,7 @@
 namespace TeamGantt\Dues\Processor;
 
 use Braintree\Gateway as BraintreeGateway;
+use DateTime;
 use TeamGantt\Dues\Contracts\SubscriptionGateway;
 use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\PaymentMethod;
@@ -10,18 +11,21 @@ use TeamGantt\Dues\Model\PaymentMethod\Token;
 use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Model\Subscription\Status;
+use TeamGantt\Dues\Model\Transaction;
 use TeamGantt\Dues\Processor\Braintree\Mapper\AddOnMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\CustomerMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\DiscountMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\PaymentMethodMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\PlanMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\SubscriptionMapper;
+use TeamGantt\Dues\Processor\Braintree\Mapper\TransactionMapper;
 use TeamGantt\Dues\Processor\Braintree\Repository\AddOnRepository;
 use TeamGantt\Dues\Processor\Braintree\Repository\CustomerRepository;
 use TeamGantt\Dues\Processor\Braintree\Repository\DiscountRepository;
 use TeamGantt\Dues\Processor\Braintree\Repository\PaymentMethodRepository;
 use TeamGantt\Dues\Processor\Braintree\Repository\PlanRepository;
 use TeamGantt\Dues\Processor\Braintree\Repository\SubscriptionRepository;
+use TeamGantt\Dues\Processor\Braintree\Repository\TransactionRepository;
 
 class Braintree implements SubscriptionGateway
 {
@@ -37,6 +41,8 @@ class Braintree implements SubscriptionGateway
 
     private SubscriptionRepository $subscriptions;
 
+    private TransactionRepository $transactions;
+
     /**
      * @param array<mixed> $config
      *
@@ -48,7 +54,8 @@ class Braintree implements SubscriptionGateway
 
         $addOnMapper = new AddOnMapper();
         $discountMapper = new DiscountMapper();
-        $subscriptionMapper = new SubscriptionMapper($addOnMapper, $discountMapper);
+        $transactionMapper = new TransactionMapper($addOnMapper, $discountMapper);
+        $subscriptionMapper = new SubscriptionMapper($addOnMapper, $discountMapper, $transactionMapper);
         $paymentMethodMapper = new PaymentMethodMapper();
         $customerMapper = new CustomerMapper($paymentMethodMapper);
         $planMapper = new PlanMapper($addOnMapper, $discountMapper);
@@ -59,6 +66,7 @@ class Braintree implements SubscriptionGateway
         $this->discounts = new DiscountRepository($braintree, $discountMapper);
         $this->addOns = new AddOnRepository($braintree, $addOnMapper);
         $this->subscriptions = new SubscriptionRepository($braintree, $subscriptionMapper, $this->customers, $this->plans);
+        $this->transactions = new TransactionRepository($braintree, $transactionMapper);
     }
 
     public function createCustomer(Customer $customer): Customer
@@ -94,6 +102,14 @@ class Braintree implements SubscriptionGateway
     public function findSubscriptionById(string $subscriptionId): ?Subscription
     {
         return $this->subscriptions->find($subscriptionId);
+    }
+
+    /**
+     * @return Transaction[]
+     */
+    public function findTransactionsByCustomerId(string $customerId, ?DateTime $start = null, ?DateTime $end = null): array
+    {
+        return $this->transactions->findByCustomerId($customerId, $start, $end);
     }
 
     public function cancelSubscription(string $subscriptionId): Subscription

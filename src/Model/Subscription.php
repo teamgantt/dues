@@ -32,6 +32,11 @@ class Subscription extends Entity implements Arrayable
 
     protected Modifiers $discounts;
 
+    /**
+     * @var Transaction[]
+     */
+    protected array $transactions = [];
+
     public function __construct(string $id = '')
     {
         parent::__construct($id);
@@ -382,5 +387,34 @@ class Subscription extends Entity implements Arrayable
         }
 
         return $modifierDefaults;
+    }
+
+    /**
+     * @return Transaction[]
+     */
+    public function getTransactions(): array
+    {
+        return $this->transactions;
+    }
+
+    /**
+     * Set the value of transactions.
+     *
+     * @param Transaction[] $transactions
+     *
+     * @return Subscription
+     */
+    public function setTransactions(array $transactions): self
+    {
+        $this->transactions = $transactions;
+
+        return $this;
+    }
+
+    public function addTransaction(Transaction $transaction): self
+    {
+        $this->transactions[] = $transaction;
+
+        return $this;
     }
 }
