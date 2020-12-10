@@ -1,6 +1,6 @@
 <?php
 
-namespace TeamGantt\Dues\Processor\Braintree;
+namespace TeamGantt\Dues\Processor\Braintree\Mapper;
 
 use Braintree;
 use TeamGantt\Dues\Arr;
@@ -20,10 +20,16 @@ class SubscriptionMapper
 
     private DiscountMapper $discountMapper;
 
-    public function __construct(AddOnMapper $addOnMapper, DiscountMapper $discountMapper)
-    {
+    private TransactionMapper $transactionMapper;
+
+    public function __construct(
+        AddOnMapper $addOnMapper,
+        DiscountMapper $discountMapper,
+        TransactionMapper $transactionMapper
+    ) {
         $this->addOnMapper = $addOnMapper;
         $this->discountMapper = $discountMapper;
+        $this->transactionMapper = $transactionMapper;
     }
 
     /**
@@ -105,6 +111,10 @@ class SubscriptionMapper
             ->withPaymentMethod($paymentMethod)
             ->withPlan($plan)
             ->build();
+
+        foreach ($result->transactions as $transaction) {
+            $subscription->addTransaction($this->transactionMapper->fromResult($transaction));
+        }
 
         $subscription->setAddOns(new Modifiers($subscription, $addOns));
 

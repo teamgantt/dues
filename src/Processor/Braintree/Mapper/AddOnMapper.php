@@ -1,6 +1,6 @@
 <?php
 
-namespace TeamGantt\Dues\Processor\Braintree;
+namespace TeamGantt\Dues\Processor\Braintree\Mapper;
 
 use Braintree;
 use TeamGantt\Dues\Model\Subscription\AddOn;

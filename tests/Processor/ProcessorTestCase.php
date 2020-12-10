@@ -18,6 +18,7 @@ abstract class ProcessorTestCase extends TestCase
     use Feature\PaymentMethod;
     use Feature\Plan;
     use Feature\Subscription;
+    use Feature\Transaction;
 
     protected ?Dues $dues = null;
 

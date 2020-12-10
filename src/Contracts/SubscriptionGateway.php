@@ -2,6 +2,7 @@
 
 namespace TeamGantt\Dues\Contracts;
 
+use DateTime;
 use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\Plan;
@@ -9,6 +10,7 @@ use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Model\Subscription\AddOn;
 use TeamGantt\Dues\Model\Subscription\Discount;
 use TeamGantt\Dues\Model\Subscription\Status;
+use TeamGantt\Dues\Model\Transaction;
 
 interface SubscriptionGateway
 {
@@ -43,6 +45,11 @@ interface SubscriptionGateway
     public function findSubscriptionsByCustomerId(string $customerId, array $statuses = []): array;
 
     public function findSubscriptionById(string $subscriptionId): ?Subscription;
+
+    /**
+     * @return Transaction[]
+     */
+    public function findTransactionsByCustomerId(string $customerId, ?DateTime $start = null, ?DateTime $end = null): array;
 
     /**
      * @return AddOn[]
