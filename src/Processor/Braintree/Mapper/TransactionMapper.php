@@ -47,9 +47,9 @@ class TransactionMapper
         $customer = new Customer($details->id);
 
         return $customer
-            ->setEmailAddress($details->email)
-            ->setFirstName($details->firstName)
-            ->setLastName($details->lastName);
+            ->setEmailAddress((string) $details->email)
+            ->setFirstName((string) $details->firstName)
+            ->setLastName((string) $details->lastName);
     }
 
     private function getType(BraintreeTransaction $result): Type
