@@ -42,5 +42,5 @@ abstract class PaymentMethod implements Arrayable
 
     abstract public function isNew(): bool;
 
-    abstract public function isEqualTo(PaymentMethod $method): bool;
+    abstract public function isEqualTo(?PaymentMethod $method): bool;
 }

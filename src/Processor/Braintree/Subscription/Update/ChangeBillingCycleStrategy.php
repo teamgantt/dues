@@ -4,10 +4,10 @@ namespace TeamGantt\Dues\Processor\Braintree\Subscription\Update;
 
 use TeamGantt\Dues\Exception\SubscriptionNotUpdatedException;
 use TeamGantt\Dues\Exception\UnknownException;
+use TeamGantt\Dues\Model\Modifier\Discount;
 use TeamGantt\Dues\Model\Price;
 use TeamGantt\Dues\Model\Price\NullPrice;
 use TeamGantt\Dues\Model\Subscription;
-use TeamGantt\Dues\Model\Subscription\Discount;
 use TeamGantt\Dues\Model\Subscription\SubscriptionBuilder;
 
 class ChangeBillingCycleStrategy extends BaseUpdateStrategy
@@ -33,8 +33,8 @@ class ChangeBillingCycleStrategy extends BaseUpdateStrategy
         $builder = (new SubscriptionBuilder())
                 ->withPlan($original->getPlan())
                 ->withCustomer($original->getCustomer())
-                ->withDiscounts($original->getDiscounts()->getAll())
-                ->withAddOns($original->getAddOns()->getAll());
+                ->withDiscounts($original->getDiscounts())
+                ->withAddOns($original->getAddOns());
 
         if ($balance = $canceled->getBalance()) {
             $balanceDiscount = new Discount('balance', 1, new Price(abs($balance->getAmount())));
@@ -48,8 +48,8 @@ class ChangeBillingCycleStrategy extends BaseUpdateStrategy
 
         $newSubscription = $builder->build();
 
-        $discounts = $newSubscription->getDiscounts();
-        $addOns = $newSubscription->getAddOns();
+        $discounts = $newSubscription->getDiscountsImpl();
+        $addOns = $newSubscription->getAddOnsImpl();
 
         return $newSubscription
             ->merge($canceled)

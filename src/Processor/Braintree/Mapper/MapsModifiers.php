@@ -4,8 +4,8 @@ namespace TeamGantt\Dues\Processor\Braintree\Mapper;
 
 use Braintree\AddOn;
 use Braintree\Discount;
+use TeamGantt\Dues\Model\Modifier\ModifierBuilder;
 use TeamGantt\Dues\Model\Price;
-use TeamGantt\Dues\Model\Subscription\ModifierBuilder;
 
 trait MapsModifiers
 {

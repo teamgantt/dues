@@ -13,6 +13,7 @@ use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Model\Subscription\Modifiers;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Subscription\SubscriptionBuilder;
+use TeamGantt\Dues\Processor\Braintree\Mapper\Subscription\ModifierMapper;
 
 class SubscriptionMapper
 {
@@ -22,6 +23,8 @@ class SubscriptionMapper
 
     private TransactionMapper $transactionMapper;
 
+    private ModifierMapper $modifierMapper;
+
     public function __construct(
         AddOnMapper $addOnMapper,
         DiscountMapper $discountMapper,
@@ -30,12 +33,13 @@ class SubscriptionMapper
         $this->addOnMapper = $addOnMapper;
         $this->discountMapper = $discountMapper;
         $this->transactionMapper = $transactionMapper;
+        $this->modifierMapper = new ModifierMapper();
     }
 
     /**
      * @return mixed[]
      */
-    public function toRequest(Subscription $subscription): array
+    public function toRequest(Subscription $subscription, ?Plan $plan = null): array
     {
         $request = Arr::replaceKeys($subscription->toArray(), [
             'payment' => 'paymentMethodToken',
@@ -45,7 +49,7 @@ class SubscriptionMapper
 
         unset($request['customer']);
 
-        return Arr::updateIn($request, [], function (array $r) {
+        $request = Arr::updateIn($request, [], function (array $r) {
             if (isset($r['paymentMethodToken']['token'])) {
                 $r['paymentMethodToken'] = $r['paymentMethodToken']['token'];
             }
@@ -57,38 +61,30 @@ class SubscriptionMapper
             if (isset($r['price'])) {
                 $r['price'] = $r['price']['amount'];
             }
-            $this->withModifiers($r, 'addOns');
-            $this->withModifiers($r, 'discounts');
 
             return $r;
         });
+
+        return $this->withModifiers($request, $subscription, $plan);
     }
 
     /**
      * @param mixed[] $request
-     * @param string  $kind    - addOns|discounts
+     *
+     * @return mixed[]
      */
-    private function withModifiers(array &$request, string $kind): void
+    private function withModifiers(array $request, Subscription $subscription, ?Plan $plan): array
     {
-        if (!isset($request[$kind])) {
-            return;
+        list($addOns, $discounts) = $this->modifierMapper->toRequest($subscription, $plan);
+        if (!empty($addOns)) {
+            $request['addOns'] = $addOns;
         }
 
-        $request[$kind] = Arr::replaceKeys($request[$kind], [
-            'new' => 'add',
-            'current' => 'update',
-            'removed' => 'remove',
-        ]);
-
-        foreach ($request[$kind] as $key => $values) {
-            if ('add' === $key) {
-                $request[$kind][$key] = array_map(fn ($m) => Arr::replaceKeys($m, ['id' => 'inheritedFromId']), $values);
-            }
-
-            if ('update' === $key) {
-                $request[$kind][$key] = array_map(fn ($m) => Arr::replaceKeys($m, ['id' => 'existingId']), $values);
-            }
+        if (!empty($discounts)) {
+            $request['discounts'] = $discounts;
         }
+
+        return $request;
     }
 
     public function fromResult(Braintree\Subscription $result): Subscription
@@ -116,9 +112,9 @@ class SubscriptionMapper
             $subscription->addTransaction($this->transactionMapper->fromResult($transaction));
         }
 
-        $subscription->setAddOns(new Modifiers($subscription, $addOns));
+        $subscription->setAddOns(new Modifiers($addOns));
 
-        return $subscription->setDiscounts(new Modifiers($subscription, $discounts));
+        return $subscription->setDiscounts(new Modifiers($discounts));
     }
 
     protected function getStatusFromResult(Braintree\Subscription $result): Status

@@ -3,8 +3,8 @@
 namespace TeamGantt\Dues\Processor\Braintree\Mapper;
 
 use Braintree;
-use TeamGantt\Dues\Model\Subscription\AddOn;
-use TeamGantt\Dues\Model\Subscription\AddOnBuilder;
+use TeamGantt\Dues\Model\Modifier\AddOn;
+use TeamGantt\Dues\Model\Modifier\AddOnBuilder;
 
 class AddOnMapper
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace TeamGantt\Dues\Model\Subscription;
+namespace TeamGantt\Dues\Model\Modifier;
 
 use TeamGantt\Dues\Contracts\Arrayable;
 use TeamGantt\Dues\Model\Entity;
@@ -58,8 +58,12 @@ abstract class Modifier extends Entity implements Arrayable
         return $array;
     }
 
-    public function isEqualTo(Entity $other): bool
+    public function isEqualTo(?Entity $other): bool
     {
+        if (null === $other) {
+            return false;
+        }
+
         if (!$other instanceof Modifier) {
             return false;
         }

@@ -3,7 +3,7 @@
 namespace TeamGantt\Dues\Processor\Braintree\Repository;
 
 use Braintree\Gateway;
-use TeamGantt\Dues\Model\Subscription\Discount;
+use TeamGantt\Dues\Model\Modifier\Discount;
 use TeamGantt\Dues\Processor\Braintree\Mapper\DiscountMapper;
 
 class DiscountRepository

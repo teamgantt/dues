@@ -3,7 +3,7 @@
 namespace TeamGantt\Dues\Processor\Braintree\Repository;
 
 use Braintree\Gateway;
-use TeamGantt\Dues\Model\Subscription\AddOn;
+use TeamGantt\Dues\Model\Modifier\AddOn;
 use TeamGantt\Dues\Processor\Braintree\Mapper\AddOnMapper;
 
 class AddOnRepository

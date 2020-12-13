@@ -6,6 +6,7 @@ use Braintree\Gateway;
 use Braintree\Result\Error;
 use Braintree\Result\Successful;
 use TeamGantt\Dues\Arr;
+use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Processor\Braintree\Mapper\SubscriptionMapper;
 use TeamGantt\Dues\Processor\Braintree\Repository\PlanRepository;
@@ -36,9 +37,9 @@ abstract class BaseUpdateStrategy implements UpdateStrategy
     /**
      * @return Successful|Error
      */
-    protected function doBraintreeUpdate(Subscription $subscription)
+    protected function doBraintreeUpdate(Subscription $subscription, ?Plan $newPlan = null)
     {
-        $request = $this->mapper->toRequest($subscription);
+        $request = $this->mapper->toRequest($subscription, $newPlan);
         $request = Arr::dissoc($request, ['firstBillingDate', 'status']);
         $request['options'] = ['prorateCharges' => true];
 

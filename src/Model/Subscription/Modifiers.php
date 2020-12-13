@@ -2,167 +2,74 @@
 
 namespace TeamGantt\Dues\Model\Subscription;
 
-use ArrayAccess;
-use Countable;
-use DomainException;
-use TeamGantt\Dues\Contracts\Arrayable;
-use TeamGantt\Dues\Model\Subscription;
+use TeamGantt\Dues\Model\Modifier\Modifier;
+use TeamGantt\Dues\Model\Subscription\Modifier\Operation;
+use TeamGantt\Dues\Model\Subscription\Modifier\OperationType;
 
-/**
- * @implements \ArrayAccess<int, Modifier>
- */
-class Modifiers implements Arrayable, ArrayAccess, Countable
+class Modifiers
 {
-    private Subscription $subscription;
-
     /**
-     * @var Modifier[]
+     * @var Array<string, Operation>
      */
-    private array $new = [];
-
-    /**
-     * @var Modifier[]
-     */
-    private array $current = [];
-
-    /**
-     * @var string[]
-     */
-    private array $removed = [];
-
-    /**
-     * @param Modifier[] $current
-     *
-     * @return void
-     */
-    public function __construct(Subscription $subscription, $current = [])
-    {
-        $this->subscription = $subscription;
-        foreach ($current as $modifier) {
-            $this->current[$modifier->getId()] = $modifier;
-        }
-    }
-
-    public function add(Modifier $modifier): void
-    {
-        $key = $modifier->getId();
-
-        if (isset($this->current[$key])) {
-            $this->current[$key] = $modifier;
-        } else {
-            $this->new[$key] = $modifier;
-        }
-
-        unset($this->removed[$key]);
-    }
-
-    public function get(string $id): ?Modifier
-    {
-        if (isset($this->current[$id])) {
-            return $this->current[$id];
-        }
-
-        return $this->new[$id] ?? null;
-    }
-
-    public function remove(string $id): void
-    {
-        unset($this->new[$id]);
-        unset($this->current[$id]);
-        $this->removed[$id] = $id;
-    }
+    private array $operations = [];
 
     /**
      * @param Modifier[] $modifiers
      */
-    public function set(array $modifiers): void
+    public function __construct(array $modifiers = [])
     {
         foreach ($modifiers as $modifier) {
-            $this->add($modifier);
+            $this->push($modifier, OperationType::read());
         }
     }
 
-    /**
-     * @return Modifier[]
-     */
-    public function getNew(): array
+    public function push(Modifier $modifier, OperationType $type): void
     {
-        return array_values($this->new);
+        $this->operations[$modifier->getId()] = new Operation($type, $modifier);
     }
 
-    /**
-     * @return Modifier[]
-     */
-    public function getCurrent(): array
+    public function filter(callable $fn): Modifiers
     {
-        return array_values($this->current);
-    }
+        $modifiers = new Modifiers();
 
-    /**
-     * @return string[]
-     */
-    public function getRemoved(): array
-    {
-        return array_values($this->removed);
-    }
-
-    /**
-     * @return Modifier[]
-     */
-    public function getAll(): array
-    {
-        return array_merge(
-            $this->getNew(),
-            $this->getCurrent()
-        );
-    }
-
-    public function toArray(): array
-    {
-        $array = [
-           'new' => array_map(fn (Modifier $m) => $m->toArray(), $this->getNew()),
-           'current' => array_map(fn (Modifier $m) => $m->toArray(), $this->getCurrent()),
-           'removed' => array_values($this->getRemoved()),
-       ];
-
-        $results = [];
-        foreach ($array as $key => $value) {
-            if (!empty($value)) {
-                $results[$key] = $value;
+        foreach ($this->operations as $operation) {
+            if (!$fn($operation)) {
+                continue;
             }
+            $modifiers->push($operation->getModifier(), $operation->getType());
         }
 
-        return $results;
+        return $modifiers;
     }
 
-    public function offsetExists($offset)
+    public function get(string $modifierId): ?Operation
     {
-        $all = $this->getAll();
+        if (!isset($this->operations[$modifierId])) {
+            return null;
+        }
 
-        return isset($all[$offset]);
+        return $this->operations[$modifierId];
     }
 
-    public function offsetGet($offset)
+    /**
+     * @return Array<string, Operation>
+     */
+    public function getOperations(): array
     {
-        $all = $this->getAll();
-
-        return $all[$offset] ?? null;
+        return $this->operations;
     }
 
-    public function offsetSet($offset, $value)
+    /**
+     * @return Modifier[]
+     */
+    public function toModifierArray(): array
     {
-        throw new DomainException('Cannot set Modifier by offset');
-    }
+        $modifiers = [];
 
-    public function offsetUnset($offset)
-    {
-        throw new DomainException('Cannot unset Modifier by offset');
-    }
+        foreach ($this->operations as $operation) {
+            $modifiers[] = $operation->getModifier();
+        }
 
-    public function count()
-    {
-        $all = $this->getAll();
-
-        return count($all);
+        return $modifiers;
     }
 }
