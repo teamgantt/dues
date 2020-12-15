@@ -141,12 +141,14 @@ final class ModifierMapperTest extends TestCase
         $subscription->setPlan($this->plan);
         $newPlan = new Plan('next-plan');
         $defaultAddOn = new AddOn('next-plan-default-addon-1');
+        $defaultAddOn->setPrice(new Price(10.00));
+        $defaultAddOn->setQuantity(10);
         $newPlan->addAddOn($defaultAddOn);
         $subscription->setPlan($newPlan);
         $nonDefault = new AddOn('non-default', 2, new Price(2.50));
         $subscription->addAddOn($nonDefault);
 
-        list($addOns) = $this->modifierMapper->toRequest($subscription, $this->plan);
+        list($addOns) = $this->modifierMapper->toRequest($subscription, $newPlan);
 
         $this->assertEquals([
             'remove' => ['default-addon-1'],
@@ -156,7 +158,44 @@ final class ModifierMapperTest extends TestCase
                     'amount' => 2.50,
                     'inheritedFromId' => 'non-default',
                 ],
+                [
+                    'quantity' => 10,
+                    'amount' => 10.00,
+                    'inheritedFromId' => 'next-plan-default-addon-1',
+                ],
             ],
         ], $addOns);
+    }
+
+    public function testToRequestDiscountsForExistingSubscriptionRemovesPreviousPlanDefaults()
+    {
+        $subscription = new Subscription('existing');
+        $subscription->setPlan($this->plan);
+        $newPlan = new Plan('next-plan');
+        $defaultDiscount = new Discount('next-plan-default-discount-1');
+        $defaultDiscount->setPrice(new Price(10.00));
+        $defaultDiscount->setQuantity(1);
+        $newPlan->addDiscount($defaultDiscount);
+        $subscription->setPlan($newPlan);
+        $nonDefault = new Discount('non-default', 2, new Price(2.50));
+        $subscription->addDiscount($nonDefault);
+
+        list(, $discounts) = $this->modifierMapper->toRequest($subscription, $newPlan);
+
+        $this->assertEquals([
+            'remove' => ['default-discount-1'],
+            'add' => [
+                [
+                    'quantity' => 2,
+                    'amount' => 2.50,
+                    'inheritedFromId' => 'non-default',
+                ],
+                [
+                    'quantity' => 1,
+                    'amount' => 10.00,
+                    'inheritedFromId' => 'next-plan-default-discount-1',
+                ],
+            ],
+        ], $discounts);
     }
 }

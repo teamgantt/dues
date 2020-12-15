@@ -27,13 +27,38 @@ class ModifierMapper
         if ($previousPlan = $subscription->getPreviousPlan()) {
             list($addOns, $discounts) = $modifiers;
 
+            $newAddOns = $this->withRemovedPreviousPlanDefaults($addOns, $previousPlan->getAddOns());
+            $newDiscounts = $this->withRemovedPreviousPlanDefaults($discounts, $previousPlan->getDiscounts());
+
+            $this->withNewDefaultModifiers($newAddOns, $plan->getAddOns());
+            $this->withNewDefaultModifiers($newDiscounts, $plan->getDiscounts());
+
             return [
-                $this->withRemovedPreviousPlanDefaults($addOns, $previousPlan->getAddOns()),
-                $this->withRemovedPreviousPlanDefaults($discounts, $previousPlan->getDiscounts()),
+                $newAddOns,
+                $newDiscounts,
             ];
         }
 
         return $modifiers;
+    }
+
+    /**
+     * @param mixed[]    $request
+     * @param Modifier[] $newModifiers
+     */
+    private function withNewDefaultModifiers(array &$request, array $newModifiers): void
+    {
+        foreach ($newModifiers as $newDefault) {
+            $request = Arr::updateIn($request, ['add'], function ($modifiers) use ($newDefault) {
+                $default = Arr::replaceKeys($newDefault->toArray(), ['id' => 'inheritedFromId']);
+
+                if (is_array($modifiers)) {
+                    return [...$modifiers, $default];
+                }
+
+                return [$default];
+            });
+        }
     }
 
     /**
