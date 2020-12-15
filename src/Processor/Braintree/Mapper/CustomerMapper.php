@@ -38,9 +38,9 @@ class CustomerMapper
 
         $customer = $builder
             ->withId($result->id)
-            ->withEmailAddress($result->email)
-            ->withFirstName($result->firstName)
-            ->withLastName($result->lastName)
+            ->withEmailAddress((string) $result->email)
+            ->withFirstName((string) $result->firstName)
+            ->withLastName((string) $result->lastName)
             ->build();
 
         foreach ($result->paymentMethods as $paymentMethod) {
