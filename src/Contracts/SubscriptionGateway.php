@@ -52,14 +52,23 @@ interface SubscriptionGateway
     public function findTransactionsByCustomerId(string $customerId, ?DateTime $start = null, ?DateTime $end = null): array;
 
     /**
+     * @return Transaction[]
+     */
+    public function findTransactionsBySubscriptionId(string $subscriptionId): array;
+
+    /**
      * @return AddOn[]
      */
     public function listAddOns(): array;
+
+    public function findAddOnById(string $id): ?AddOn;
 
     /**
      * @return Discount[]
      */
     public function listDiscounts(): array;
+
+    public function findDiscountById(string $id): ?Discount;
 
     /**
      * @return Plan[]

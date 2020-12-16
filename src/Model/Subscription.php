@@ -102,6 +102,7 @@ class Subscription extends Entity implements Arrayable
 
         $this->setAddOns($other->getAddOnsImpl());
         $this->setDiscounts($other->getDiscountsImpl());
+        $this->setTransactions($other->getTransactions());
 
         return $this;
     }

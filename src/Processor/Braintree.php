@@ -6,6 +6,8 @@ use Braintree\Gateway as BraintreeGateway;
 use DateTime;
 use TeamGantt\Dues\Contracts\SubscriptionGateway;
 use TeamGantt\Dues\Model\Customer;
+use TeamGantt\Dues\Model\Modifier\AddOn;
+use TeamGantt\Dues\Model\Modifier\Discount;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\PaymentMethod\Token;
 use TeamGantt\Dues\Model\Plan;
@@ -112,6 +114,20 @@ class Braintree implements SubscriptionGateway
         return $this->transactions->findByCustomerId($customerId, $start, $end);
     }
 
+    /**
+     * @return Transaction[]
+     */
+    public function findTransactionsBySubscriptionId(string $subscriptionId): array
+    {
+        $subscription = $this->findSubscriptionById($subscriptionId);
+
+        if (null === $subscription) {
+            return [];
+        }
+
+        return $subscription->getTransactions();
+    }
+
     public function cancelSubscription(string $subscriptionId): Subscription
     {
         $subscription = (new Subscription($subscriptionId))->setStatus(Status::canceled());
@@ -161,9 +177,19 @@ class Braintree implements SubscriptionGateway
         return $this->addOns->all();
     }
 
+    public function findAddOnById(string $id): ?AddOn
+    {
+        return $this->addOns->find($id);
+    }
+
     public function listDiscounts(): array
     {
         return $this->discounts->all();
+    }
+
+    public function findDiscountById(string $id): ?Discount
+    {
+        return $this->discounts->find($id);
     }
 
     public function findPlanById(string $planId): ?Plan

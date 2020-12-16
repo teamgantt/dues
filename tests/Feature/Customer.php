@@ -142,7 +142,7 @@ trait Customer
         }
 
         $id = $idFn($this->dues);
-        $customer = $this->dues->findCustomerbyId($id);
+        $customer = $this->dues->findCustomerById($id);
         $newPaymentMethod = new Nonce('fake-valid-visa-nonce');
         $customer->addPaymentMethod($newPaymentMethod);
         $updated = $this->dues->updateCustomer($customer);

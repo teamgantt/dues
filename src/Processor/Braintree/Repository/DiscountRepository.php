@@ -30,4 +30,16 @@ class DiscountRepository
 
         return $this->mapper->fromResults($results);
     }
+
+    public function find(string $id): ?Discount
+    {
+        $discounts = $this->all();
+        foreach ($discounts as $discount) {
+            if ($discount->getId() === $id) {
+                return $discount;
+            }
+        }
+
+        return null;
+    }
 }
