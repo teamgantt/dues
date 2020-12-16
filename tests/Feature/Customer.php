@@ -5,7 +5,9 @@ namespace TeamGantt\Dues\Tests\Feature;
 use PHPUnit\Framework\Exception;
 use PHPUnit\Framework\ExpectationFailedException;
 use SebastianBergmann\RecursionContext\InvalidArgumentException;
+use TeamGantt\Dues\Event\BaseEventListener;
 use TeamGantt\Dues\Exception\CustomerNotCreatedException;
+use TeamGantt\Dues\Model\Customer as ModelCustomer;
 use TeamGantt\Dues\Model\Customer\CustomerBuilder;
 use TeamGantt\Dues\Model\PaymentMethod\Nonce;
 use TeamGantt\Dues\Model\PaymentMethod\Token;
@@ -32,6 +34,34 @@ trait Customer
 
         $this->assertFalse($customer->isNew());
         $this->assertEquals('Bill', $customer->getFirstName());
+        $this->assertEquals('Steffen', $customer->getLastName());
+        $this->assertEquals('bill.steffen@email.com', $customer->getEmailAddress());
+    }
+
+    /**
+     * @group integration
+     *
+     * @return void
+     */
+    public function testCreateCustomerWithListener()
+    {
+        $customer = (new CustomerBuilder())
+            ->withFirstName('Bill')
+            ->withLastName('Steffen')
+            ->withEmailAddress('bill.steffen@email.com')
+            ->build();
+
+        $listener = new class() extends BaseEventListener {
+            public function onBeforeCreateCustomer(ModelCustomer $customer): void
+            {
+                $customer->setFirstName('William');
+            }
+        };
+        $this->dues->addListener($listener);
+
+        $customer = $this->dues->createCustomer($customer);
+        $this->assertFalse($customer->isNew());
+        $this->assertEquals('William', $customer->getFirstName());
         $this->assertEquals('Steffen', $customer->getLastName());
         $this->assertEquals('bill.steffen@email.com', $customer->getEmailAddress());
     }
@@ -190,6 +220,30 @@ trait Customer
         $this->assertNotNull($currentDefault);
         $this->assertFalse($customer->getDefaultPaymentMethod()->isEqualTo($currentDefault));
         $this->assertFalse($subscriptions[0]->getPaymentMethod()->isEqualTo($subscription->getPaymentMethod()));
+    }
+
+    /**
+     * @group integration
+     * @dataProvider subscriptionProvider
+     *
+     * @return void
+     */
+    public function testUpdateCustomerWithListener(callable $subscriptionFactory)
+    {
+        $subscription = $subscriptionFactory($this->dues);
+        $customer = $subscription->getCustomer();
+        $customer->setFirstName('NotBlorpus');
+
+        $listener = new class() extends BaseEventListener {
+            public function onBeforeUpdateCustomer(ModelCustomer $customer): void
+            {
+                $customer->setFirstName('Blorpus');
+            }
+        };
+        $this->dues->addListener($listener);
+
+        $updated = $this->dues->updateCustomer($customer);
+        $this->assertEquals('Blorpus', $updated->getFirstName());
     }
 
     /**
