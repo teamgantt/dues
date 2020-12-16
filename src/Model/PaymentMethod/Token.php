@@ -32,7 +32,7 @@ class Token extends PaymentMethod
         return false;
     }
 
-    public function isEqualTo(PaymentMethod $method): bool
+    public function isEqualTo(?PaymentMethod $method): bool
     {
         if (!$method instanceof Token) {
             return false;

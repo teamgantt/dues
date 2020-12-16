@@ -4,14 +4,15 @@ namespace TeamGantt\Dues\Model;
 
 use DateTime;
 use DateTimeZone;
+use TeamGantt\Dues\Model\Modifier\HasModifiers;
 use TeamGantt\Dues\Model\Plan\NullPlan;
-use TeamGantt\Dues\Model\Subscription\AddOn;
-use TeamGantt\Dues\Model\Subscription\Discount;
 use TeamGantt\Dues\Model\Transaction\Status;
 use TeamGantt\Dues\Model\Transaction\Type;
 
 class Transaction extends Entity
 {
+    use HasModifiers;
+
     protected Subscription $subscription;
 
     protected Customer $customer;
@@ -19,16 +20,6 @@ class Transaction extends Entity
     protected string $companyName = '';
 
     protected Plan $plan;
-
-    /**
-     * @var AddOn[]
-     */
-    protected array $addOns = [];
-
-    /**
-     * @var Discount[]
-     */
-    protected array $discounts = [];
 
     protected Money $amount;
 
@@ -105,46 +96,6 @@ class Transaction extends Entity
     public function setAmount(Money $amount): self
     {
         $this->amount = $amount;
-
-        return $this;
-    }
-
-    /**
-     * @return Discount[]
-     */
-    public function getDiscounts(): array
-    {
-        return $this->discounts;
-    }
-
-    /**
-     * @param Discount[] $discounts
-     *
-     * @return Transaction
-     */
-    public function setDiscounts(array $discounts): self
-    {
-        $this->discounts = $discounts;
-
-        return $this;
-    }
-
-    /**
-     * @return AddOn[]
-     */
-    public function getAddOns(): array
-    {
-        return $this->addOns;
-    }
-
-    /**
-     * @param AddOn[] $addOns
-     *
-     * @return Transaction
-     */
-    public function setAddOns(array $addOns): self
-    {
-        $this->addOns = $addOns;
 
         return $this;
     }

@@ -86,4 +86,12 @@ final class ArrTest extends TestCase
 
         $this->assertEquals(['paymentToken' => 'abc'], $updated);
     }
+
+    public function testAssocInCreatesMissingKey()
+    {
+        $array = [];
+        $result = Arr::assocIn($array, ['foo'], 'bar');
+
+        $this->assertEquals(['foo' => 'bar'], $result);
+    }
 }

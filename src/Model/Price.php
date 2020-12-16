@@ -17,4 +17,9 @@ class Price extends Money
 
         parent::__construct($amount);
     }
+
+    public function applyToSubscription(Subscription $subscription): void
+    {
+        $subscription->setPrice($this);
+    }
 }

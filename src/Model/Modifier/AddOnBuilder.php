@@ -1,6 +1,6 @@
 <?php
 
-namespace TeamGantt\Dues\Model\Subscription;
+namespace TeamGantt\Dues\Model\Modifier;
 
 class AddOnBuilder extends ModifierBuilder
 {

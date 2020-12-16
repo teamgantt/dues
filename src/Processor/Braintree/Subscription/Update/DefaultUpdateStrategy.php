@@ -32,7 +32,8 @@ class DefaultUpdateStrategy extends BaseUpdateStrategy
     public function update(Subscription $subscription): ?Subscription
     {
         try {
-            $result = $this->doBraintreeUpdate($subscription);
+            $newPlan = $subscription->hasChangedPlans() ? $this->plans->find($subscription->getPlan()->getId()) : null;
+            $result = $this->doBraintreeUpdate($subscription, $newPlan);
 
             if ($this->isBillingFrequencyError($result)) {
                 return $this->changeBillingCycleStrategy->update($subscription);
@@ -47,12 +48,6 @@ class DefaultUpdateStrategy extends BaseUpdateStrategy
 
             if (null == $updated) {
                 throw new UnknownException('Failed to find updated Subscription');
-            }
-
-            $newPlan = $this->plans->find($updated->getPlan()->getId());
-
-            if (null !== $newPlan) {
-                $updated->setPlan($newPlan);
             }
 
             return $subscription->merge($updated);

@@ -36,7 +36,7 @@ class Nonce extends PaymentMethod
         return true;
     }
 
-    public function isEqualTo(PaymentMethod $method): bool
+    public function isEqualTo(?PaymentMethod $method): bool
     {
         if (!$method instanceof Nonce) {
             return false;

@@ -4,11 +4,13 @@ namespace TeamGantt\Dues\Model;
 
 use DateTime;
 use TeamGantt\Dues\Contracts\Arrayable;
+use TeamGantt\Dues\Model\Modifier\AddOn;
+use TeamGantt\Dues\Model\Modifier\Discount;
+use TeamGantt\Dues\Model\Modifier\Modifier;
 use TeamGantt\Dues\Model\Plan\NullPlan;
 use TeamGantt\Dues\Model\Price\NullPrice;
-use TeamGantt\Dues\Model\Subscription\AddOn;
-use TeamGantt\Dues\Model\Subscription\Discount;
-use TeamGantt\Dues\Model\Subscription\Modifier;
+use TeamGantt\Dues\Model\Subscription\Modifier\Operation;
+use TeamGantt\Dues\Model\Subscription\Modifier\OperationType;
 use TeamGantt\Dues\Model\Subscription\Modifiers;
 use TeamGantt\Dues\Model\Subscription\Status;
 
@@ -26,6 +28,8 @@ class Subscription extends Entity implements Arrayable
 
     protected Plan $plan;
 
+    protected ?Plan $previousPlan = null;
+
     protected ?Money $balance = null;
 
     protected Modifiers $addOns;
@@ -42,8 +46,8 @@ class Subscription extends Entity implements Arrayable
         parent::__construct($id);
         $this->status = Status::initialized();
         $this->customer = new Customer();
-        $this->addOns = new Modifiers($this);
-        $this->discounts = new Modifiers($this);
+        $this->addOns = new Modifiers();
+        $this->discounts = new Modifiers();
         $this->plan = new NullPlan();
     }
 
@@ -60,8 +64,6 @@ class Subscription extends Entity implements Arrayable
             'customer' => $this->getCustomer()->toArray(),
             'payment' => empty($payment) ? null : $payment->toArray(),
             'plan' => $this->plan->toArray(),
-            'addOns' => $this->addOns->toArray(),
-            'discounts' => $this->discounts->toArray(),
         ]);
     }
 
@@ -98,8 +100,8 @@ class Subscription extends Entity implements Arrayable
             $this->setBalance($balance);
         }
 
-        $this->setAddOns($other->getAddOns());
-        $this->setDiscounts($other->getDiscounts());
+        $this->setAddOns($other->getAddOnsImpl());
+        $this->setDiscounts($other->getDiscountsImpl());
 
         return $this;
     }
@@ -114,8 +116,8 @@ class Subscription extends Entity implements Arrayable
     {
         $this->setPlan(new NullPlan());
         $this->setPrice(new Price(0.0));
-        $this->setAddOns(new Modifiers($this));
-        $this->setDiscounts(new Modifiers($this));
+        $this->setAddOns(new Modifiers());
+        $this->setDiscounts(new Modifiers());
 
         return $this;
     }
@@ -140,14 +142,27 @@ class Subscription extends Entity implements Arrayable
      */
     public function addDiscount(Discount $discount): self
     {
-        $this->discounts->add($discount);
+        $this->discounts->push($discount, OperationType::add());
 
         return $this;
     }
 
-    public function getDiscounts(): Modifiers
+    /**
+     * @internal
+     */
+    public function getDiscountsImpl(): Modifiers
     {
         return $this->discounts;
+    }
+
+    /**
+     * @return Modifier[]
+     */
+    public function getDiscounts(): array
+    {
+        return $this->discounts
+            ->filter(fn (Operation $op) => !$op->getType()->equals(OperationType::remove()))
+            ->toModifierArray();
     }
 
     /**
@@ -165,7 +180,7 @@ class Subscription extends Entity implements Arrayable
      */
     public function removeDiscount(string $id): self
     {
-        $this->discounts->remove($id);
+        $this->discounts->push(new Discount($id), OperationType::remove());
 
         return $this;
     }
@@ -175,14 +190,27 @@ class Subscription extends Entity implements Arrayable
      */
     public function addAddOn(AddOn $addOn): self
     {
-        $this->addOns->add($addOn);
+        $this->addOns->push($addOn, OperationType::add());
 
         return $this;
     }
 
-    public function getAddOns(): Modifiers
+    /**
+     * @internal
+     */
+    public function getAddOnsImpl(): Modifiers
     {
         return $this->addOns;
+    }
+
+    /**
+     * @return Modifier[]
+     */
+    public function getAddOns(): array
+    {
+        return $this->addOns
+            ->filter(fn (Operation $op) => !$op->getType()->equals(OperationType::remove()))
+            ->toModifierArray();
     }
 
     /**
@@ -200,7 +228,7 @@ class Subscription extends Entity implements Arrayable
      */
     public function removeAddOn(string $id): self
     {
-        $this->addOns->remove($id);
+        $this->addOns->push(new AddOn($id), OperationType::remove());
 
         return $this;
     }
@@ -335,58 +363,37 @@ class Subscription extends Entity implements Arrayable
     /**
      * @return Subscription
      */
-    public function resetPlan(Plan $plan): self
-    {
-        return $this
-            ->setPlan(new NullPlan())
-            ->setPlan($plan);
-    }
-
-    /**
-     * @return Subscription
-     */
     public function setPlan(Plan $plan): self
     {
-        if (!$plan->isEqualTo($this->plan)) {
-            $this->setPrice($plan->getPrice());
+        if ($plan->isEqualTo($this->plan)) {
+            $this->plan = $plan; // allow updating to a newer instance of the same plan
+
+            return $this;
         }
 
-        $this->mergePlanDefaults($plan);
-
+        $this->setPriceFromPlan($plan);
+        $this->previousPlan = $this->plan;
         $this->plan = $plan;
 
         return $this;
     }
 
-    private function mergePlanDefaults(Plan $plan): void
+    public function getPreviousPlan(): ?Plan
     {
-        $this->setAddOns($this->mergeCurrentModifiers($this->getAddOns(), $plan->getAddOns()));
-        $this->setDiscounts($this->mergeCurrentModifiers($this->getDiscounts(), $plan->getDiscounts()));
+        if ($this->hasChangedPlans()) {
+            return $this->previousPlan;
+        }
+
+        return null;
     }
 
-    /**
-     * @param Modifier[] $modifiers
-     */
-    private function mergeCurrentModifiers(Modifiers $source, array $modifiers): Modifiers
+    public function hasChangedPlans(): bool
     {
-        if (empty($modifiers)) {
-            return $source;
+        if (null === $this->previousPlan) {
+            return false;
         }
 
-        $provided = $source->getAll();
-        $modifierDefaults = new Modifiers($this, $modifiers);
-
-        foreach ($provided as $modifier) {
-            $default = $modifierDefaults->get($modifier->getId());
-
-            if (null === $default || $default->isEqualTo($modifier)) {
-                continue;
-            }
-
-            $modifierDefaults->add($modifier);
-        }
-
-        return $modifierDefaults;
+        return !$this->previousPlan instanceof NullPlan;
     }
 
     /**
@@ -416,5 +423,10 @@ class Subscription extends Entity implements Arrayable
         $this->transactions[] = $transaction;
 
         return $this;
+    }
+
+    private function setPriceFromPlan(Plan $plan): void
+    {
+        $plan->getPrice()->applyToSubscription($this);
     }
 }

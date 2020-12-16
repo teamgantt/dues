@@ -21,8 +21,12 @@ abstract class Entity
         return empty($this->getId());
     }
 
-    public function isEqualTo(Entity $other): bool
+    public function isEqualTo(?Entity $other): bool
     {
+        if (null === $other) {
+            return false;
+        }
+
         return $other->getId() === $this->getId();
     }
 }

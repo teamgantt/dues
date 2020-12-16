@@ -3,8 +3,8 @@
 namespace TeamGantt\Dues\Processor\Braintree\Mapper;
 
 use Braintree;
-use TeamGantt\Dues\Model\Subscription\Discount;
-use TeamGantt\Dues\Model\Subscription\DiscountBuilder;
+use TeamGantt\Dues\Model\Modifier\Discount;
+use TeamGantt\Dues\Model\Modifier\DiscountBuilder;
 
 class DiscountMapper
 {

@@ -3,8 +3,8 @@
 namespace TeamGantt\Dues\Model\Subscription\Tests;
 
 use PHPUnit\Framework\TestCase;
+use TeamGantt\Dues\Model\Modifier\AddOn;
 use TeamGantt\Dues\Model\Price;
-use TeamGantt\Dues\Model\Subscription\AddOn;
 
 final class ModifierTest extends TestCase
 {

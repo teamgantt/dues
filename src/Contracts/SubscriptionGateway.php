@@ -4,11 +4,11 @@ namespace TeamGantt\Dues\Contracts;
 
 use DateTime;
 use TeamGantt\Dues\Model\Customer;
+use TeamGantt\Dues\Model\Modifier\AddOn;
+use TeamGantt\Dues\Model\Modifier\Discount;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Subscription;
-use TeamGantt\Dues\Model\Subscription\AddOn;
-use TeamGantt\Dues\Model\Subscription\Discount;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Transaction;
 

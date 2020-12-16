@@ -9,11 +9,11 @@ use TeamGantt\Dues\Arr;
 use TeamGantt\Dues\Exception\InvalidPriceException;
 use TeamGantt\Dues\Exception\SubscriptionNotCreatedException;
 use TeamGantt\Dues\Exception\SubscriptionNotUpdatedException;
+use TeamGantt\Dues\Model\Modifier\AddOn;
+use TeamGantt\Dues\Model\Modifier\Discount;
 use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Price;
-use TeamGantt\Dues\Model\Subscription\AddOn;
 use TeamGantt\Dues\Model\Subscription as ModelSubscription;
-use TeamGantt\Dues\Model\Subscription\Discount;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Subscription\SubscriptionBuilder;
 use TeamGantt\Dues\Tests\ProvidesTestData;
@@ -161,8 +161,8 @@ trait Subscription
 
         $updated = $this->dues->updateSubscription($subscription);
 
-        $this->assertEquals($updated->getPlan()->getId(), 'test-plan-b-yearly');
-        $this->assertEquals($updated->getPrice()->getAmount(), 20.00);
+        $this->assertEquals('test-plan-b-yearly', $updated->getPlan()->getId());
+        $this->assertEquals(20.00, $updated->getPrice()->getAmount());
         $previous = $subscription->toArray();
         $next = $updated->toArray();
         $this->assertEquals(Arr::dissoc($previous, ['plan', 'price']), Arr::dissoc($next, ['plan', 'price']));

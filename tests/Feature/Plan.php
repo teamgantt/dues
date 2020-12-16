@@ -42,7 +42,7 @@ trait Plan
         $this->assertEquals('test-plan-d-yearly', $plan->getId());
         $this->assertEquals(12, $plan->getBillingFrequency());
         $this->assertNotNull($plan->getPrice());
-        $this->assertEquals('test-plan-d-yearly-u', $addOns[0]->getId());
-        $this->assertEquals('test-plan-d-yearly-discount', $discounts[0]->getId());
+        $this->assertEquals('test-plan-d-yearly-u', current($addOns)->getId());
+        $this->assertEquals('test-plan-d-yearly-discount', current($discounts)->getId());
     }
 }

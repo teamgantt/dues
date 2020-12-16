@@ -56,7 +56,7 @@ class SubscriptionRepository
             $subscription->setCustomer($this->customers->add($customer));
         }
 
-        $request = $this->mapper->toRequest($subscription);
+        $request = $this->mapper->toRequest($subscription, $plan);
         $request = Arr::dissoc($request, ['id', 'status']);
 
         $result = $this
@@ -69,7 +69,7 @@ class SubscriptionRepository
 
             return $newSubscription
                 ->setCustomer($subscription->getCustomer())
-                ->resetPlan($plan);
+                ->setPlan($plan);
         }
 
         if (!$isNewCustomer) {
@@ -87,7 +87,10 @@ class SubscriptionRepository
                 ->subscription()
                 ->find($id);
 
-            return $this->mapper->fromResult($result);
+            $subscription = $this->mapper->fromResult($result);
+            $this->hydratePlans([$subscription]);
+
+            return $subscription;
         } catch (Exception $e) {
             return null;
         }
@@ -126,10 +129,36 @@ class SubscriptionRepository
             return array_map([$this->mapper, 'fromResult'], $pm->subscriptions);
         });
 
+        $this->hydratePlans($subscriptions);
+
         if (empty($statuses)) {
             return $subscriptions;
         }
 
         return array_values(array_filter($subscriptions, fn (Subscription $sub) => in_array($sub->getStatus(), $statuses)));
+    }
+
+    /**
+     * @param Subscription[] $subscriptions
+     */
+    private function hydratePlans(array $subscriptions): void
+    {
+        $cache = [];
+
+        foreach ($subscriptions as $subscription) {
+            $plan = $subscription->getPlan();
+
+            $hydrated = isset($cache[$plan->getId()]) ? $cache[$plan->getId()] : $this->plans->find($plan->getId());
+
+            if (null === $hydrated) {
+                continue;
+            }
+
+            if (!isset($cache[$hydrated->getId()])) {
+                $cache[$hydrated->getId()] = $hydrated;
+            }
+
+            $subscription->setPlan($hydrated);
+        }
     }
 }
