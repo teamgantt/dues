@@ -52,6 +52,11 @@ interface SubscriptionGateway
     public function findTransactionsByCustomerId(string $customerId, ?DateTime $start = null, ?DateTime $end = null): array;
 
     /**
+     * @return Transaction[]
+     */
+    public function findTransactionsBySubscriptionId(string $subscriptionId): array;
+
+    /**
      * @return AddOn[]
      */
     public function listAddOns(): array;

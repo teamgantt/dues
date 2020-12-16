@@ -93,6 +93,14 @@ trait ProcessesSubscriptions
         return $this->gateway->findTransactionsByCustomerId($customerId, $start, $end);
     }
 
+    /**
+     * @return Transaction[]
+     */
+    public function findTransactionsBySubscriptionId(string $subscriptionId): array
+    {
+        return $this->gateway->findTransactionsBySubscriptionId($subscriptionId);
+    }
+
     public function listAddOns(): array
     {
         return $this->gateway->listAddOns();

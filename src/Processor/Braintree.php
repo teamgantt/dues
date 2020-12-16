@@ -114,6 +114,20 @@ class Braintree implements SubscriptionGateway
         return $this->transactions->findByCustomerId($customerId, $start, $end);
     }
 
+    /**
+     * @return Transaction[]
+     */
+    public function findTransactionsBySubscriptionId(string $subscriptionId): array
+    {
+        $subscription = $this->findSubscriptionById($subscriptionId);
+
+        if (null === $subscription) {
+            return [];
+        }
+
+        return $subscription->getTransactions();
+    }
+
     public function cancelSubscription(string $subscriptionId): Subscription
     {
         $subscription = (new Subscription($subscriptionId))->setStatus(Status::canceled());
