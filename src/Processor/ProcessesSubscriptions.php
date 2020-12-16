@@ -5,6 +5,8 @@ namespace TeamGantt\Dues\Processor;
 use DateTime;
 use TeamGantt\Dues\Contracts\SubscriptionGateway;
 use TeamGantt\Dues\Model\Customer;
+use TeamGantt\Dues\Model\Modifier\AddOn;
+use TeamGantt\Dues\Model\Modifier\Discount;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Subscription;
@@ -96,9 +98,19 @@ trait ProcessesSubscriptions
         return $this->gateway->listAddOns();
     }
 
+    public function findAddOnById(string $id): ?AddOn
+    {
+        return $this->gateway->findAddOnById($id);
+    }
+
     public function listDiscounts(): array
     {
         return $this->gateway->listDiscounts();
+    }
+
+    public function findDiscountById(string $id): ?Discount
+    {
+        return $this->gateway->findDiscountById($id);
     }
 
     public function listPlans(): array

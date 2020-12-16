@@ -30,4 +30,16 @@ class AddOnRepository
 
         return $this->mapper->fromResults($results);
     }
+
+    public function find(string $id): ?AddOn
+    {
+        $addOns = $this->all();
+        foreach ($addOns as $addOn) {
+            if ($addOn->getId() === $id) {
+                return $addOn;
+            }
+        }
+
+        return null;
+    }
 }
