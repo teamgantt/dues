@@ -14,6 +14,7 @@ use TeamGantt\Dues\Model\Modifier\Discount;
 use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Price;
 use TeamGantt\Dues\Model\Subscription as ModelSubscription;
+use TeamGantt\Dues\Model\Subscription\Modifiers;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Subscription\SubscriptionBuilder;
 use TeamGantt\Dues\Tests\ProvidesTestData;
@@ -138,12 +139,43 @@ trait Subscription
         $this->assertEquals('test-plan-c-monthly', $updated->getPlan()->getId());
         $this->assertEquals($plan->getPrice()->getAmount(), $updated->getPrice()->getAmount());
         $this->assertGreaterThan(0, count($updated->getDiscounts()));
-        $this->assertTrue($updated->getStatus() !== Status::canceled());
+        $this->assertTrue($updated->is(Status::active()));
+        $this->assertTrue($subscription->is(Status::canceled()));
         $balance = $updated->getBalance()->getAmount();
         $price = $updated->getPrice()->getAmount();
         $addOnPrice = $updated->getAddOns()[0]->getPrice()->getAmount();
         $rollover = $subscription->getBalance()->getAmount();
         $this->assertEquals($rollover + $price + $addOnPrice, $balance);
+    }
+
+    /**
+     * @group integration
+     * @dataProvider subscriptionProvider
+     *
+     * @return void
+     */
+    public function testUpdateSubscriptionPlanToPlanWithDifferentBillingCycleWhenAddOnNotPreviouslyAssociatedWithPlan(callable $subscriptionFactory)
+    {
+        $subscription = $subscriptionFactory($this->dues, null, function (ModelSubscription $s) {
+            $s->beginImmediately();
+            $plan = $this->dues->findPlanById('401m');
+            $s->setAddOns(new Modifiers());
+
+            return $s->resetPlan($plan);
+        });
+
+        $plan = $this->dues->findPlanById('401y');
+        $subscription->setPlan($plan);
+
+        $updated = $this->dues->updateSubscription($subscription);
+
+        $this->assertEquals('401y', $updated->getPlan()->getId());
+        $this->assertEquals($plan->getPrice()->getAmount(), $updated->getPrice()->getAmount());
+        $this->assertGreaterThan(0, count($updated->getDiscounts()));
+        $this->assertTrue($updated->is(Status::active()));
+        $this->assertTrue($subscription->is(Status::canceled()));
+        $balance = $updated->getBalance()->getAmount();
+        $this->assertEquals(0.0, $balance);
     }
 
     /**

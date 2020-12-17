@@ -379,6 +379,18 @@ class Subscription extends Entity implements Arrayable
         return $this;
     }
 
+    /**
+     * @return Subscription
+     */
+    public function resetPlan(Plan $plan): self
+    {
+        $this->previousPlan = null;
+        $this->plan = new NullPlan();
+        $this->setPlan($plan);
+
+        return $this;
+    }
+
     public function getPreviousPlan(): ?Plan
     {
         if ($this->hasChangedPlans()) {
