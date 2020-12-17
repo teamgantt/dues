@@ -28,6 +28,11 @@ class Modifiers
         $this->operations[$modifier->getId()] = new Operation($type, $modifier);
     }
 
+    public function drop(Modifier $modifier): void
+    {
+        unset($this->operations[$modifier->getId()]);
+    }
+
     public function filter(callable $fn): Modifiers
     {
         $modifiers = new Modifiers();

@@ -2,12 +2,15 @@
 
 namespace TeamGantt\Dues\Processor\Braintree\Subscription\Update;
 
+use TeamGantt\Dues\Exception\IllegalStateException;
 use TeamGantt\Dues\Exception\SubscriptionNotUpdatedException;
 use TeamGantt\Dues\Exception\UnknownException;
 use TeamGantt\Dues\Model\Modifier\Discount;
+use TeamGantt\Dues\Model\Modifier\Modifier;
 use TeamGantt\Dues\Model\Price;
 use TeamGantt\Dues\Model\Price\NullPrice;
 use TeamGantt\Dues\Model\Subscription;
+use TeamGantt\Dues\Model\Subscription\Modifiers;
 use TeamGantt\Dues\Model\Subscription\SubscriptionBuilder;
 
 class ChangeBillingCycleStrategy extends BaseUpdateStrategy
@@ -30,11 +33,20 @@ class ChangeBillingCycleStrategy extends BaseUpdateStrategy
     private function createReplacementSubscription(Subscription $original, Subscription $canceled): Subscription
     {
         // Purchase new subscription, applying balance from previous subscription.
+        $previousPlan = $original->getPreviousPlan();
+
+        if (null === $previousPlan) {
+            throw new IllegalStateException('Previous plan should not be null while changing billing cycles.');
+        }
+
+        $nextAddOns = $this->removePreviousPlanDefaultModifiers($original->getAddOnsImpl(), $previousPlan->getAddOns());
+        $nextDiscounts = $this->removePreviousPlanDefaultModifiers($original->getDiscountsImpl(), $previousPlan->getDiscounts());
+
         $builder = (new SubscriptionBuilder())
                 ->withPlan($original->getPlan())
                 ->withCustomer($original->getCustomer())
-                ->withDiscounts($original->getDiscounts())
-                ->withAddOns($original->getAddOns());
+                ->withDiscounts($nextDiscounts)
+                ->withAddOns($nextAddOns);
 
         if ($balance = $canceled->getBalance()) {
             $balanceDiscount = new Discount('balance', 1, new Price(abs($balance->getAmount())));
@@ -58,10 +70,31 @@ class ChangeBillingCycleStrategy extends BaseUpdateStrategy
             ->setDiscounts($discounts);
     }
 
+    /**
+     * @param Modifier[] $defaultModifiers
+     *
+     * @return Modifier[]
+     */
+    private function removePreviousPlanDefaultModifiers(Modifiers $modifiers, array $defaultModifiers): array
+    {
+        foreach ($defaultModifiers as $modifier) {
+            $modifiers->drop($modifier);
+        }
+
+        return $modifiers->toModifierArray();
+    }
+
     private function cancel(Subscription $original): Subscription
     {
+        $previousPlan = $original->getPreviousPlan();
+
+        if (null === $previousPlan) {
+            throw new IllegalStateException('Previous plan should not be null while changing billing cycles.');
+        }
+
         // Close out the subscription, removing any price information
         $clone = (new Subscription($original->getId()))->merge($original);
+        $clone->setPlan($previousPlan);
         $subscription = $clone->closeOut();
         $result = $this->doBraintreeUpdate($subscription);
 
