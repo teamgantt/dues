@@ -190,6 +190,33 @@ trait Subscription
      *
      * @return void
      */
+    public function testUpdateWithSubscriptionWithPlanAddOnsToPlanWithoutAddOns(callable $subscriptionFactory)
+    {
+        $subscription = $subscriptionFactory($this->dues, null, function (ModelSubscription $s) {
+            $s->beginImmediately();
+            $plan = $this->dues->findPlanById('401m');
+            $s->setAddOns(new Modifiers());
+
+            return $s->resetPlan($plan);
+        });
+
+        $plan = $this->dues->findPlanById('001');
+        $subscription->setPlan($plan);
+
+        $updated = $this->dues->updateSubscription($subscription);
+
+        $this->assertEquals('001', $updated->getPlan()->getId());
+        $this->assertEquals($plan->getPrice()->getAmount(), $updated->getPrice()->getAmount());
+        $this->assertEquals(0, count($updated->getAddOns()));
+        $this->assertTrue($updated->is(Status::active()));
+    }
+
+    /**
+     * @group integration
+     * @dataProvider subscriptionProvider
+     *
+     * @return void
+     */
     public function testUpdateSubscriptionPriceAndPlan(callable $subscriptionFactory)
     {
         $subscription = $subscriptionFactory($this->dues);

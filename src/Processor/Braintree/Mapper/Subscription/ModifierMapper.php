@@ -85,6 +85,11 @@ class ModifierMapper
                 $request['remove'] = [];
             }
             $request['remove'][] = $default->getId();
+
+            // removed Modifiers can't be in the update
+            if (isset($request['update'])) {
+                $request['update'] = Arr::filter($request['update'], fn ($m) => $m['existingId'] !== $default->getId());
+            }
         }
 
         return $request;
