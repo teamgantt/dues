@@ -22,6 +22,8 @@ class Subscription extends Entity implements Arrayable
 
     protected Status $status;
 
+    protected int $daysPastDue = 0;
+
     protected Customer $customer;
 
     protected ?PaymentMethod $paymentMethod = null;
@@ -61,6 +63,7 @@ class Subscription extends Entity implements Arrayable
             'startDate' => $this->getStartDate(),
             'price' => empty($price) ? null : $price->toArray(),
             'status' => $this->getStatus(),
+            'daysPastDue' => $this->getDaysPastDue(),
             'customer' => $this->getCustomer()->toArray(),
             'payment' => empty($payment) ? null : $payment->toArray(),
             'plan' => $this->plan->toArray(),
@@ -84,6 +87,8 @@ class Subscription extends Entity implements Arrayable
         }
 
         $this->setStatus($other->getStatus());
+
+        $this->setDaysPastDue($other->getDaysPastDue());
 
         $this->setCustomer($other->getCustomer());
 
@@ -306,6 +311,21 @@ class Subscription extends Entity implements Arrayable
     public function setStatus(Status $status): self
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getDaysPastDue(): int
+    {
+        return $this->daysPastDue;
+    }
+
+    /**
+     * @return Subscription
+     */
+    public function setDaysPastDue(int $daysPastDue): self
+    {
+        $this->daysPastDue = $daysPastDue;
 
         return $this;
     }

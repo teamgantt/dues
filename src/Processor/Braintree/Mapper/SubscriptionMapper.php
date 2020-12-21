@@ -93,6 +93,7 @@ class SubscriptionMapper
         $balance = new Money(floatval($result->balance));
         $price = new Price(floatval($result->price));
         $status = $this->getStatusFromResult($result);
+        $daysPastDue = $result->daysPastDue ?? 0;
         $paymentMethod = new Token($result->paymentMethodToken);
         $plan = new Plan($result->planId);
         $addOns = $this->addOnMapper->fromResults($result->addOns);
@@ -104,6 +105,7 @@ class SubscriptionMapper
             ->withBalance($balance)
             ->withPrice($price)
             ->withStatus($status)
+            ->withDaysPastDue($daysPastDue)
             ->withPaymentMethod($paymentMethod)
             ->withPlan($plan)
             ->build();
