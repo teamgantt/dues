@@ -6,6 +6,7 @@ use DateInterval;
 use DateTime;
 use DateTimeZone;
 use TeamGantt\Dues\Arr;
+use TeamGantt\Dues\Event\BaseEventListener;
 use TeamGantt\Dues\Exception\InvalidPriceException;
 use TeamGantt\Dues\Exception\SubscriptionNotCreatedException;
 use TeamGantt\Dues\Exception\SubscriptionNotUpdatedException;
@@ -47,6 +48,40 @@ trait Subscription
         $this->assertFalse($subscription->getCustomer()->isNew());
         $this->assertFalse($subscription->isNew());
         $this->assertEquals(Status::pending(), $subscription->getStatus());
+    }
+
+    /**
+     * @group integration
+     * @dataProvider customerProvider
+     *
+     * @return void
+     */
+    public function testCreateSubscriptionWithListener(callable $customerFactory)
+    {
+        $customer = $customerFactory($this->dues);
+        $plan = $this->dues->findPlanById('test-plan-c-yearly');
+        $now = new DateTime('now', new DateTimeZone('UTC'));
+        $startDate = $now->add(new DateInterval('P1D')); // start 1 day in the future
+
+        $subscription = (new SubscriptionBuilder())
+            ->withCustomer($customer)
+            ->withPlan($plan)
+            ->withStartDate($startDate)
+            ->build();
+
+        $listener = new class() extends BaseEventListener {
+            public function onBeforeCreateSubscription(ModelSubscription $subscription): void
+            {
+                $subscription->beginImmediately(); // THERE WILL BE NO PENDING SUBS HERE!!!!
+            }
+        };
+        $this->dues->addListener($listener);
+
+        $subscription = $this->dues->createSubscription($subscription);
+
+        $this->assertFalse($subscription->getCustomer()->isNew());
+        $this->assertFalse($subscription->isNew());
+        $this->assertEquals(Status::active(), $subscription->getStatus());
     }
 
     /**
@@ -190,6 +225,35 @@ trait Subscription
         $plan = $this->dues->findPlanById('test-plan-b-yearly');
         $subscription->setPlan($plan);
         $subscription->setPrice(new Price(20.00));
+
+        $updated = $this->dues->updateSubscription($subscription);
+
+        $this->assertEquals('test-plan-b-yearly', $updated->getPlan()->getId());
+        $this->assertEquals(20.00, $updated->getPrice()->getAmount());
+        $previous = $subscription->toArray();
+        $next = $updated->toArray();
+        $this->assertEquals(Arr::dissoc($previous, ['plan', 'price']), Arr::dissoc($next, ['plan', 'price']));
+    }
+
+    /**
+     * @group integration
+     * @dataProvider subscriptionProvider
+     *
+     * @return void
+     */
+    public function testUpdateSubscriptionPriceAndPlanViaListener(callable $subscriptionFactory)
+    {
+        $subscription = $subscriptionFactory($this->dues);
+        $plan = $this->dues->findPlanById('test-plan-b-yearly');
+        $subscription->setPlan($plan);
+
+        $listener = new class() extends BaseEventListener {
+            public function onBeforeUpdateSubscription(ModelSubscription $subscription): void
+            {
+                $subscription->setPrice(new Price(20.00));
+            }
+        };
+        $this->dues->addListener($listener);
 
         $updated = $this->dues->updateSubscription($subscription);
 

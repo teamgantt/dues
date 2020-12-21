@@ -4,6 +4,8 @@ namespace TeamGantt\Dues\Processor;
 
 use DateTime;
 use TeamGantt\Dues\Contracts\SubscriptionGateway;
+use TeamGantt\Dues\Event\Dispatcher;
+use TeamGantt\Dues\Event\EventType;
 use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\Modifier\AddOn;
 use TeamGantt\Dues\Model\Modifier\Discount;
@@ -20,14 +22,24 @@ trait ProcessesSubscriptions
 {
     private SubscriptionGateway $gateway;
 
+    private Dispatcher $events;
+
     public function createCustomer(Customer $customer): Customer
     {
-        return $this->gateway->createCustomer($customer);
+        $this->events->dispatch(EventType::beforeCreateCustomer(), $customer);
+        $result = $this->gateway->createCustomer($customer);
+        $this->events->dispatch(EventType::afterCreateCustomer(), $result);
+
+        return $result;
     }
 
     public function updateCustomer(Customer $customer): Customer
     {
-        return $this->gateway->updateCustomer($customer);
+        $this->events->dispatch(EventType::beforeUpdateCustomer(), $customer);
+        $result = $this->gateway->updateCustomer($customer);
+        $this->events->dispatch(EventType::afterUpdateCustomer(), $result);
+
+        return $result;
     }
 
     public function deleteCustomer(string $customerId): void
@@ -57,12 +69,31 @@ trait ProcessesSubscriptions
 
     public function createSubscription(Subscription $subscription): Subscription
     {
-        return $this->gateway->createSubscription($subscription);
+        $this->events->dispatch(EventType::beforeCreateSubscription(), $subscription);
+
+        $dispatchForCustomer = $subscription->isNew() && $subscription->getCustomer()->isNew();
+
+        if ($dispatchForCustomer) {
+            $this->events->dispatch(EventType::beforeCreateCustomer(), $subscription->getCustomer());
+        }
+
+        $result = $this->gateway->createSubscription($subscription);
+        $this->events->dispatch(EventType::afterCreateSubscription(), $result);
+
+        if ($dispatchForCustomer) {
+            $this->events->dispatch(EventType::afterCreateCustomer(), $result->getCustomer());
+        }
+
+        return $result;
     }
 
     public function updateSubscription(Subscription $subscription): Subscription
     {
-        return $this->gateway->updateSubscription($subscription);
+        $this->events->dispatch(EventType::beforeUpdateSubscription(), $subscription);
+        $result = $this->gateway->updateSubscription($subscription);
+        $this->events->dispatch(EventType::afterUpdateSubscription(), $result);
+
+        return $result;
     }
 
     public function findCustomerById(string $customerId): ?Customer

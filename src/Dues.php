@@ -2,7 +2,10 @@
 
 namespace TeamGantt\Dues;
 
+use TeamGantt\Dues\Contracts\EventListener;
+use TeamGantt\Dues\Contracts\EventListenerContainer;
 use TeamGantt\Dues\Contracts\SubscriptionGateway;
+use TeamGantt\Dues\Event\Dispatcher;
 use TeamGantt\Dues\Exception\CustomerNotUpdatedException;
 use TeamGantt\Dues\Exception\SubscriptionNotCreatedException;
 use TeamGantt\Dues\Model\Customer;
@@ -14,7 +17,7 @@ use TeamGantt\Dues\Processor\ProcessesSubscriptions;
 /**
  * Dues does subscriptions dawgz.
  */
-class Dues implements SubscriptionGateway
+class Dues implements SubscriptionGateway, EventListenerContainer
 {
     /*
      * Dues processes subscriptions. Includes the ProcessesSubscriptions trait
@@ -27,9 +30,22 @@ class Dues implements SubscriptionGateway
 
     private SubscriptionGateway $gateway;
 
+    private Dispatcher $events;
+
     public function __construct(SubscriptionGateway $gateway)
     {
         $this->gateway = $gateway;
+        $this->events = new Dispatcher();
+    }
+
+    public function addListener(EventListener $listener): void
+    {
+        $this->events->addListener($listener);
+    }
+
+    public function removeListener(EventListener $listener): void
+    {
+        $this->events->removeListener($listener);
     }
 
     /**
