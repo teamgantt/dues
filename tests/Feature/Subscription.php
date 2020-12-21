@@ -202,15 +202,77 @@ trait Subscription
         $plan = $this->dues->findPlanById('401y');
         $subscription->setPlan($plan);
 
+        // ensures we can add a new quantity for a defaulted plan addon
+        $newAddOn = new AddOn('401y-u', 2);
+        $subscription->addAddOn($newAddOn);
+
         $updated = $this->dues->updateSubscription($subscription);
 
         $this->assertEquals('401y', $updated->getPlan()->getId());
         $this->assertEquals($plan->getPrice()->getAmount(), $updated->getPrice()->getAmount());
         $this->assertGreaterThan(0, count($updated->getDiscounts()));
+        $this->assertEquals('401y-u', $updated->getAddOns()[0]->getId());
+        $this->assertEquals(2, $updated->getAddOns()[0]->getQuantity());
         $this->assertTrue($updated->is(Status::active()));
         $this->assertTrue($subscription->is(Status::canceled()));
         $balance = $updated->getBalance()->getAmount();
         $this->assertEquals(0.0, $balance);
+    }
+
+    /**
+     * @group integration
+     * @dataProvider subscriptionProvider
+     *
+     * @return void
+     */
+    public function testUpdateWithSubscriptionWithPlanAddOnsToPlanWithoutAddOns(callable $subscriptionFactory)
+    {
+        $subscription = $subscriptionFactory($this->dues, null, function (ModelSubscription $s) {
+            $s->beginImmediately();
+            $plan = $this->dues->findPlanById('401m');
+            $s->setAddOns(new Modifiers());
+
+            return $s->resetPlan($plan);
+        });
+
+        $plan = $this->dues->findPlanById('001');
+        $subscription->setPlan($plan);
+
+        $updated = $this->dues->updateSubscription($subscription);
+
+        $this->assertEquals('001', $updated->getPlan()->getId());
+        $this->assertEquals($plan->getPrice()->getAmount(), $updated->getPrice()->getAmount());
+        $this->assertEquals(0, count($updated->getAddOns()));
+        $this->assertTrue($updated->is(Status::active()));
+    }
+
+    /**
+     * @group integration
+     * @dataProvider subscriptionProvider
+     *
+     * @return void
+     */
+    public function testUpdateWithSubscriptionWithoutPlanAddOnsToPlanWithAddOns(callable $subscriptionFactory)
+    {
+        $subscription = $subscriptionFactory($this->dues, null, function (ModelSubscription $s) {
+            $s->beginImmediately();
+            $plan = $this->dues->findPlanById('001');
+            $s->setAddOns(new Modifiers());
+
+            return $s->resetPlan($plan);
+        });
+
+        $plan = $this->dues->findPlanById('401m');
+        $subscription->setPlan($plan);
+        $subscription->addAddOn(new AddOn('401m-u', 2, new Price(10.0)));
+
+        $updated = $this->dues->updateSubscription($subscription);
+
+        $this->assertEquals('401m', $updated->getPlan()->getId());
+        $this->assertEquals('401m-u', $updated->getAddOns()[0]->getId());
+        $this->assertEquals($plan->getPrice()->getAmount(), $updated->getPrice()->getAmount());
+        $this->assertEquals(1, count($updated->getAddOns()));
+        $this->assertTrue($updated->is(Status::active()));
     }
 
     /**

@@ -95,4 +95,14 @@ trait HasModifiers
     {
         return !empty($this->addOns) || !empty($this->discounts);
     }
+
+    public function hasAddOn(string $id): bool
+    {
+        return isset($this->getAddOns()[$id]);
+    }
+
+    public function hasDiscount(string $id): bool
+    {
+        return isset($this->getDiscounts()[$id]);
+    }
 }

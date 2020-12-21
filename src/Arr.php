@@ -80,7 +80,7 @@ class Arr
     }
 
     /**
-     * A farily naive "update in place" update function that allows
+     * A fairly naive "update in place" update function that allows
      * updating nested values in an array based on a path.
      *
      * @param mixed[]  $array
@@ -132,5 +132,15 @@ class Arr
     public static function assocIn(array $array, array $path, $value)
     {
         return static::updateIn($array, $path, fn () => $value);
+    }
+
+    /**
+     * @param mixed[] $array
+     *
+     * @return mixed[]
+     */
+    public static function filter(array $array, callable $fn): array
+    {
+        return array_values(array_filter($array, $fn));
     }
 }

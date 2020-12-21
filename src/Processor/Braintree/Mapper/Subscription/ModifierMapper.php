@@ -4,6 +4,7 @@ namespace TeamGantt\Dues\Processor\Braintree\Mapper\Subscription;
 
 use TeamGantt\Dues\Arr;
 use TeamGantt\Dues\Model\Modifier\Modifier;
+use TeamGantt\Dues\Model\Modifier\ModifierType;
 use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Model\Subscription\Modifier\OperationType;
@@ -53,7 +54,10 @@ class ModifierMapper
                 $default = Arr::replaceKeys($newDefault->toArray(), ['id' => 'inheritedFromId']);
 
                 if (is_array($modifiers)) {
-                    return [...$modifiers, $default];
+                    // if new modifier is in default, merge modifiers
+                    $userSuppliedModifiers = Arr::filter($modifiers, fn ($modifier) => $modifier['inheritedFromId'] !== $default['inheritedFromId']);
+
+                    return [...$userSuppliedModifiers, $default];
                 }
 
                 return [$default];
@@ -67,8 +71,8 @@ class ModifierMapper
     private function toAddOnsAndDiscountsRequest(Subscription $subscription, Plan $plan): array
     {
         return [
-            $this->toModifiersRequest($subscription->getAddOnsImpl(), $plan),
-            $this->toModifiersRequest($subscription->getDiscountsImpl(), $plan),
+            $this->toModifiersRequest($subscription, $plan, ModifierType::addOn()),
+            $this->toModifiersRequest($subscription, $plan, ModifierType::discount()),
         ];
     }
 
@@ -85,6 +89,11 @@ class ModifierMapper
                 $request['remove'] = [];
             }
             $request['remove'][] = $default->getId();
+
+            // removed Modifiers can't be in the update
+            if (isset($request['update'])) {
+                $request['update'] = Arr::filter($request['update'], fn ($m) => $m['existingId'] !== $default->getId());
+            }
         }
 
         return $request;
@@ -95,20 +104,30 @@ class ModifierMapper
      *
      * @return mixed[]
      */
-    private function toModifiersRequest(Modifiers $modifiers, Plan $plan): array
+    private function toModifiersRequest(Subscription $subscription, Plan $plan, ModifierType $modifierType): array
     {
         $add = [];
         $update = [];
         $remove = [];
 
-        $operations = $modifiers->getOperations();
+        $operations = $modifierType->equals(ModifierType::addOn()) ? $subscription->getAddOnsImpl()->getOperations() : $subscription->getDiscountsImpl()->getOperations();
 
         foreach ($operations as $operation) {
             $modifier = $operation->getModifier();
             $type = $operation->getType();
             $default = $plan->getModifier($modifier->getId());
+            $isAdding = null === $default;
 
-            if ($type->equals(OperationType::add()) && null === $default) {
+            // when changing plans, allow modifications to default AddOns
+            if (!$subscription->isNew()) {
+                if ($modifierType->equals(ModifierType::addOn())) {
+                    $isAdding = $isAdding || $subscription->getPlan()->hasAddOn($modifier->getId());
+                } else {
+                    $isAdding = $isAdding || $subscription->getPlan()->hasDiscount($modifier->getId());
+                }
+            }
+
+            if ($type->equals(OperationType::add()) && true === $isAdding) {
                 $add[] = Arr::replaceKeys($modifier->toArray(), ['id' => 'inheritedFromId']);
             } elseif ($type->equals(OperationType::remove())) {
                 $remove[] = $modifier->getId();
