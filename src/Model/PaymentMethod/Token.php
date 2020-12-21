@@ -20,7 +20,9 @@ class Token extends PaymentMethod
 
     public function toArray(): array
     {
-        return ['token' => $this->token];
+        $base = parent::toArray();
+
+        return array_merge($base, ['token' => $this->token]);
     }
 
     /**
