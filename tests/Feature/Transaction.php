@@ -15,6 +15,22 @@ trait Transaction
      *
      * @return void
      */
+    public function testFindTransactionById(callable $subscriptionFactory)
+    {
+        $subscription = $subscriptionFactory($this->dues, null, fn (Subscription $s) => $s->beginImmediately());
+        $transaction = $subscription->getTransactions()[0];
+
+        $transaction = $this->dues->findTransactionById($transaction->getId());
+
+        $this->assertTrue(!$transaction->isNew());
+    }
+
+    /**
+     * @group integration
+     * @dataProvider subscriptionProvider
+     *
+     * @return void
+     */
     public function testFindTransactionsByCustomerId(callable $subscriptionFactory)
     {
         $subscription = $subscriptionFactory($this->dues, null, fn (Subscription $s) => $s->beginImmediately());

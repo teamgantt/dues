@@ -5,6 +5,7 @@ namespace TeamGantt\Dues\Processor\Braintree\Repository;
 use Braintree\Gateway;
 use Braintree\TransactionSearch;
 use DateTime;
+use Exception;
 use TeamGantt\Dues\Model\Transaction;
 use TeamGantt\Dues\Processor\Braintree\Mapper\TransactionMapper;
 
@@ -20,6 +21,20 @@ class TransactionRepository
     {
         $this->braintree = $braintree;
         $this->mapper = $mapper;
+    }
+
+    public function find(string $id): ?Transaction
+    {
+        try {
+            $result = $this
+                ->braintree
+                ->transaction()
+                ->find($id);
+
+            return $this->mapper->fromResult($result);
+        } catch (Exception $e) {
+            return null;
+        }
     }
 
     /**
