@@ -61,6 +61,14 @@ class SubscriptionBuilder extends Builder
     /**
      * @return SubscriptionBuilder
      */
+    public function withDaysPastDue(int $daysPastDue): self
+    {
+        return $this->with('daysPastDue', $daysPastDue);
+    }
+
+    /**
+     * @return SubscriptionBuilder
+     */
     public function withCustomer(Customer $customer): self
     {
         return $this->with('customer', $customer);
@@ -135,6 +143,7 @@ class SubscriptionBuilder extends Builder
         $subscription = (new Subscription($this->getId()))
             ->setPrice($this->data['price'] ?? new NullPrice())
             ->setStatus($this->data['status'] ?? Status::initialized())
+            ->setDaysPastDue($this->data['daysPastDue'] ?? 0)
             ->setCustomer($this->data['customer'] ?? new Customer());
 
         if (isset($this->data['startDate'])) {
