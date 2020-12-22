@@ -116,6 +116,11 @@ trait ProcessesSubscriptions
         return $this->gateway->findSubscriptionById($subscriptionId);
     }
 
+    public function findTransactionById(string $transactionId): ?Transaction
+    {
+        return $this->gateway->findTransactionById($transactionId);
+    }
+
     /**
      * @return Transaction[]
      */

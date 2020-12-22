@@ -106,6 +106,11 @@ class Braintree implements SubscriptionGateway
         return $this->subscriptions->find($subscriptionId);
     }
 
+    public function findTransactionById(string $transactionId): ?Transaction
+    {
+        return $this->transactions->find($transactionId);
+    }
+
     /**
      * @return Transaction[]
      */

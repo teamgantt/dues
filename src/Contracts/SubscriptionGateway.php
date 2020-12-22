@@ -46,6 +46,8 @@ interface SubscriptionGateway
 
     public function findSubscriptionById(string $subscriptionId): ?Subscription;
 
+    public function findTransactionById(string $transactionId): ?Transaction;
+
     /**
      * @return Transaction[]
      */
