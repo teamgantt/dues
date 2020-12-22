@@ -7,6 +7,7 @@ use TeamGantt\Dues\Contracts\SubscriptionGateway;
 use TeamGantt\Dues\Event\Dispatcher;
 use TeamGantt\Dues\Event\EventType;
 use TeamGantt\Dues\Model\Customer;
+use TeamGantt\Dues\Model\Customer\CustomerSession;
 use TeamGantt\Dues\Model\Modifier\AddOn;
 use TeamGantt\Dues\Model\Modifier\Discount;
 use TeamGantt\Dues\Model\PaymentMethod;
@@ -114,6 +115,11 @@ trait ProcessesSubscriptions
     public function findSubscriptionById(string $subscriptionId): ?Subscription
     {
         return $this->gateway->findSubscriptionById($subscriptionId);
+    }
+
+    public function createCustomerSession(string $customerId): CustomerSession
+    {
+        return $this->gateway->createCustomerSession($customerId);
     }
 
     public function findTransactionById(string $transactionId): ?Transaction

@@ -11,6 +11,7 @@ use TeamGantt\Dues\Exception\CustomerNotUpdatedException;
 use TeamGantt\Dues\Exception\InvariantException;
 use TeamGantt\Dues\Exception\UnknownException;
 use TeamGantt\Dues\Model\Customer;
+use TeamGantt\Dues\Model\Customer\CustomerSession;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Processor\Braintree\Mapper\CustomerMapper;
 
@@ -141,5 +142,12 @@ class CustomerRepository
         } catch (Exception $e) {
             return null;
         }
+    }
+
+    public function createCustomerSession(string $customerId): CustomerSession
+    {
+        $id = $this->braintree->clientToken()->generate(['customerId' => $customerId]);
+
+        return new CustomerSession($id);
     }
 }

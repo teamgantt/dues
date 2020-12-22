@@ -6,6 +6,7 @@ use Braintree\Gateway as BraintreeGateway;
 use DateTime;
 use TeamGantt\Dues\Contracts\SubscriptionGateway;
 use TeamGantt\Dues\Model\Customer;
+use TeamGantt\Dues\Model\Customer\CustomerSession;
 use TeamGantt\Dues\Model\Modifier\AddOn;
 use TeamGantt\Dues\Model\Modifier\Discount;
 use TeamGantt\Dues\Model\PaymentMethod;
@@ -109,6 +110,11 @@ class Braintree implements SubscriptionGateway
     public function findTransactionById(string $transactionId): ?Transaction
     {
         return $this->transactions->find($transactionId);
+    }
+
+    public function createCustomerSession(string $customerId): CustomerSession
+    {
+        return $this->customers->createCustomerSession($customerId);
     }
 
     /**
