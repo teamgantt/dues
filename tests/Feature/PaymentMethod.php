@@ -107,6 +107,12 @@ trait PaymentMethod
         $this->assertGreaterThan(2000, strlen($clientToken->getId()));
     }
 
+    public function testCreateCustomerSessionWithOutParams()
+    {
+        $session = $this->dues->createCustomerSession();
+        $this->assertTrue(is_string($session->getId()));
+    }
+
     /**
      * @group integration
      *
