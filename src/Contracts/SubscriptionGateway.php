@@ -49,7 +49,7 @@ interface SubscriptionGateway
 
     public function findTransactionById(string $transactionId): ?Transaction;
 
-    public function createCustomerSession(string $customerId): CustomerSession;
+    public function createCustomerSession(?string $customerId = null): CustomerSession;
 
     /**
      * @return Transaction[]

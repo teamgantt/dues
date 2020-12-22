@@ -117,7 +117,7 @@ trait ProcessesSubscriptions
         return $this->gateway->findSubscriptionById($subscriptionId);
     }
 
-    public function createCustomerSession(string $customerId): CustomerSession
+    public function createCustomerSession(?string $customerId = null): CustomerSession
     {
         return $this->gateway->createCustomerSession($customerId);
     }

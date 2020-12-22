@@ -144,9 +144,15 @@ class CustomerRepository
         }
     }
 
-    public function createCustomerSession(string $customerId): CustomerSession
+    public function createCustomerSession(?string $customerId = null): CustomerSession
     {
-        $id = $this->braintree->clientToken()->generate(['customerId' => $customerId]);
+        $params = [];
+
+        if (null !== $customerId) {
+            $params = ['customerId' => $customerId];
+        }
+
+        $id = $this->braintree->clientToken()->generate($params);
 
         return new CustomerSession($id);
     }

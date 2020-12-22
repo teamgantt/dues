@@ -112,7 +112,7 @@ class Braintree implements SubscriptionGateway
         return $this->transactions->find($transactionId);
     }
 
-    public function createCustomerSession(string $customerId): CustomerSession
+    public function createCustomerSession(?string $customerId = null): CustomerSession
     {
         return $this->customers->createCustomerSession($customerId);
     }
