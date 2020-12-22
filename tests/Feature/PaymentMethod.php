@@ -78,4 +78,32 @@ trait PaymentMethod
         $paymentMethod = $this->dues->createPaymentMethod($paymentMethod);
         $this->assertInstanceOf(Token::class, $paymentMethod);
     }
+
+    /**
+     * @group integration
+     *
+     * @return void
+     *
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws Exception
+     */
+    public function testCreateCustomerSession()
+    {
+        $customer = (new CustomerBuilder())
+            ->withFirstName('Bill')
+            ->withLastName('Steffen')
+            ->withEmailAddress('bill.steffen@email.com')
+            ->build();
+
+        $customer = $this->dues->createCustomer($customer);
+        $paymentMethod = new Nonce('fake-valid-mastercard-nonce');
+        $paymentMethod->setCustomer($customer);
+
+        $paymentMethod = $this->dues->createPaymentMethod($paymentMethod);
+        $clientToken = $this->dues->createCustomerSession($customer->getId());
+
+        $this->assertTrue(is_string($clientToken->getId()));
+        $this->assertGreaterThan(2000, strlen($clientToken->getId()));
+    }
 }

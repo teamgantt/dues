@@ -4,6 +4,7 @@ namespace TeamGantt\Dues\Contracts;
 
 use DateTime;
 use TeamGantt\Dues\Model\Customer;
+use TeamGantt\Dues\Model\Customer\CustomerSession;
 use TeamGantt\Dues\Model\Modifier\AddOn;
 use TeamGantt\Dues\Model\Modifier\Discount;
 use TeamGantt\Dues\Model\PaymentMethod;
@@ -47,6 +48,8 @@ interface SubscriptionGateway
     public function findSubscriptionById(string $subscriptionId): ?Subscription;
 
     public function findTransactionById(string $transactionId): ?Transaction;
+
+    public function createCustomerSession(string $customerId): CustomerSession;
 
     /**
      * @return Transaction[]
