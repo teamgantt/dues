@@ -26,6 +26,7 @@ class PaymentMethodMapper
         }
 
         $request = Arr::replaceKeys($paymentMethod->toArray(), ['nonce' => 'paymentMethodNonce']);
+        $request = Arr::assocIn($request, ['options'], ['verifyCard' => true, 'makeDefault' => $paymentMethod->isDefaultPaymentMethod()]);
 
         return Arr::updateIn($request, ['billingAddress'], function ($address) {
             if (empty($address)) {
