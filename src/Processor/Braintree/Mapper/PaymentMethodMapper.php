@@ -2,11 +2,15 @@
 
 namespace TeamGantt\Dues\Processor\Braintree\Mapper;
 
+use Braintree\Address as BraintreeAddress;
 use InvalidArgumentException;
 use TeamGantt\Dues\Arr;
+use TeamGantt\Dues\Model\Address;
+use TeamGantt\Dues\Model\Address\State;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\PaymentMethod\Nonce;
 use TeamGantt\Dues\Model\PaymentMethod\Token;
+use TypeError;
 
 class PaymentMethodMapper
 {
@@ -21,12 +25,20 @@ class PaymentMethodMapper
             throw new InvalidArgumentException('Expected PaymentMethod of type '.Nonce::class.'. Instead received instance of '.get_class($paymentMethod));
         }
 
-        return Arr::replaceKeys($paymentMethod->toArray(), ['nonce' => 'paymentMethodNonce']);
+        $request = Arr::replaceKeys($paymentMethod->toArray(), ['nonce' => 'paymentMethodNonce']);
+
+        return Arr::updateIn($request, ['billingAddress'], function ($address) {
+            if (empty($address)) {
+                return $address;
+            }
+
+            return Arr::replaceKeys($address, ['state' => 'region']);
+        });
     }
 
     /**
      * Map a Braintree payment method to a Dues type. Input is left
-     * inentionally as type "mixed" to account for Braintree's lack of a common
+     * intentionally as type "mixed" to account for Braintree's lack of a common
      * payment method base.
      *
      * @param mixed $paymentMethod
@@ -36,6 +48,17 @@ class PaymentMethodMapper
         $token = new Token($paymentMethod->token);
         $isDefault = $paymentMethod->isDefault();
         $token->setIsDefaultPaymentMethod($isDefault);
+
+        $billingAddress = $paymentMethod->billingAddress;
+        if ($billingAddress instanceof BraintreeAddress) {
+            $state = null;
+            try {
+                $state = new State($billingAddress->region);
+            } catch (TypeError $e) {
+                // we tried
+            }
+            $token->setBillingAddress(new Address($state, $billingAddress->postalCode));
+        }
 
         return $token;
     }

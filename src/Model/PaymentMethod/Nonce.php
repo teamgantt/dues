@@ -20,12 +20,13 @@ class Nonce extends PaymentMethod
 
     public function toArray(): array
     {
+        $base = parent::toArray();
         $customer = $this->getCustomer();
 
-        return [
+        return array_merge($base, [
             'customerId' => empty($customer) ? null : $customer->getId(),
             'nonce' => $this->nonce,
-        ];
+        ]);
     }
 
     /**

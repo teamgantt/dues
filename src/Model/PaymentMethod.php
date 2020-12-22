@@ -10,6 +10,8 @@ abstract class PaymentMethod implements Arrayable
 
     protected bool $isDefault = false;
 
+    protected ?Address $billingAddress = null;
+
     /**
      * @return PaymentMethod
      */
@@ -38,6 +40,32 @@ abstract class PaymentMethod implements Arrayable
         $this->isDefault = $isDefault;
 
         return $this;
+    }
+
+    public function getBillingAddress(): ?Address
+    {
+        return $this->billingAddress;
+    }
+
+    /**
+     * @return PaymentMethod
+     */
+    public function setBillingAddress(Address $address): self
+    {
+        $this->billingAddress = $address;
+
+        return $this;
+    }
+
+    public function toArray(): array
+    {
+        if (!isset($this->billingAddress)) {
+            return [];
+        }
+
+        return [
+            'billingAddress' => $this->billingAddress->toArray(),
+        ];
     }
 
     abstract public function isNew(): bool;
