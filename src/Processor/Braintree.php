@@ -22,6 +22,7 @@ use TeamGantt\Dues\Processor\Braintree\Mapper\PaymentMethodMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\PlanMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\SubscriptionMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\TransactionMapper;
+use TeamGantt\Dues\Processor\Braintree\Query\SubscriptionQuery;
 use TeamGantt\Dues\Processor\Braintree\Repository\AddOnRepository;
 use TeamGantt\Dues\Processor\Braintree\Repository\CustomerRepository;
 use TeamGantt\Dues\Processor\Braintree\Repository\DiscountRepository;
@@ -32,6 +33,10 @@ use TeamGantt\Dues\Processor\Braintree\Repository\TransactionRepository;
 
 class Braintree implements SubscriptionGateway
 {
+    private BraintreeGateway $braintree;
+
+    private SubscriptionMapper $subscriptionMapper;
+
     private PaymentMethodRepository $paymentMethods;
 
     private CustomerRepository $customers;
@@ -62,6 +67,9 @@ class Braintree implements SubscriptionGateway
         $paymentMethodMapper = new PaymentMethodMapper();
         $customerMapper = new CustomerMapper($paymentMethodMapper);
         $planMapper = new PlanMapper($addOnMapper, $discountMapper);
+
+        $this->braintree = $braintree;
+        $this->subscriptionMapper = $subscriptionMapper;
 
         $this->paymentMethods = new PaymentMethodRepository($braintree, $paymentMethodMapper);
         $this->customers = new CustomerRepository($braintree, $customerMapper, $this->paymentMethods);
@@ -206,5 +214,10 @@ class Braintree implements SubscriptionGateway
     public function findPlanById(string $planId): ?Plan
     {
         return $this->plans->find($planId);
+    }
+
+    public function makeSubscriptionQuery(): SubscriptionQuery
+    {
+        return new SubscriptionQuery($this->braintree, $this->subscriptionMapper);
     }
 }

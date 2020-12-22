@@ -15,6 +15,7 @@ use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Transaction;
+use TeamGantt\Dues\Processor\Braintree\Query\SubscriptionQuery;
 
 /**
  * This trait exists to provide simple delegation to a SubscriptionGateway.
@@ -171,5 +172,10 @@ trait ProcessesSubscriptions
     public function findPlanById(string $planId): ?Plan
     {
         return $this->gateway->findPlanById($planId);
+    }
+
+    public function makeSubscriptionQuery(): SubscriptionQuery
+    {
+        return $this->gateway->makeSubscriptionQuery();
     }
 }
