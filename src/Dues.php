@@ -35,7 +35,9 @@ class Dues implements SubscriptionGateway, EventListenerContainer
     public function __construct(SubscriptionGateway $gateway)
     {
         $this->gateway = $gateway;
-        $this->events = new Dispatcher();
+        $dispatcher = new Dispatcher();
+        $this->setDispatcher($dispatcher);
+        $gateway->setDispatcher($dispatcher);
     }
 
     public function addListener(EventListener $listener): void
@@ -46,6 +48,11 @@ class Dues implements SubscriptionGateway, EventListenerContainer
     public function removeListener(EventListener $listener): void
     {
         $this->events->removeListener($listener);
+    }
+
+    public function setDispatcher(Dispatcher $events): void
+    {
+        $this->events = $events;
     }
 
     /**

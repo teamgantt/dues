@@ -5,6 +5,7 @@ namespace TeamGantt\Dues\Processor;
 use Braintree\Gateway as BraintreeGateway;
 use DateTime;
 use TeamGantt\Dues\Contracts\SubscriptionGateway;
+use TeamGantt\Dues\Event\Dispatcher;
 use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\Customer\CustomerSession;
 use TeamGantt\Dues\Model\Modifier\AddOn;
@@ -50,6 +51,8 @@ class Braintree implements SubscriptionGateway
     private SubscriptionRepository $subscriptions;
 
     private TransactionRepository $transactions;
+
+    private ?Dispatcher $events;
 
     /**
      * @param array<mixed> $config
@@ -219,5 +222,11 @@ class Braintree implements SubscriptionGateway
     public function makeSubscriptionQuery(): SubscriptionQuery
     {
         return new SubscriptionQuery($this->braintree, $this->subscriptionMapper);
+    }
+
+    public function setDispatcher(Dispatcher $events): void
+    {
+        $this->events = $events;
+        $this->subscriptions->setDispatcher($events);
     }
 }
