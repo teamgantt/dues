@@ -737,4 +737,24 @@ trait Subscription
         $this->assertNotNull($discounts[0]->getPrice());
         $this->assertNotEmpty($discounts[0]->getId());
     }
+
+    public function testSubscriptionSearchWithDaysPastDue()
+    {
+        $query = $this->dues->makeSubscriptionQuery();
+        $overdue = $query->whereDaysPastDue('>=', 1)->fetch();
+
+        // this assumes that you have at least one past due subscription in your processor.
+        // for the case of braintree, you can create a past due subscription by using an
+        // invalid payment method `fake-invalid-nonce` and setting a start date in the future.
+        // The subscription will fail to start, and immediately go into an past due status.
+        $this->assertGreaterThan(0, $overdue);
+
+        // should be an unreachable case, but we're verifying that the query works
+        $overdue = $query->whereDaysPastDue('<=', -1)->fetch();
+        $this->assertEquals(0, count($overdue));
+
+        // should be an unreachable case, but we're verifying that the query works
+        $overdue = $query->whereDaysPastDue('=', -2)->fetch();
+        $this->assertEquals(0, count($overdue));
+    }
 }

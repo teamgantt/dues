@@ -12,6 +12,7 @@ use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Transaction;
+use TeamGantt\Dues\Processor\Braintree\Query\SubscriptionQuery;
 
 interface SubscriptionGateway
 {
@@ -81,4 +82,6 @@ interface SubscriptionGateway
     public function listPlans(): array;
 
     public function findPlanById(string $planId): ?Plan;
+
+    public function makeSubscriptionQuery(): SubscriptionQuery;
 }
