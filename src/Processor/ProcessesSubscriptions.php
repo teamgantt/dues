@@ -71,20 +71,8 @@ trait ProcessesSubscriptions
 
     public function createSubscription(Subscription $subscription): Subscription
     {
-        $this->events->dispatch(EventType::beforeCreateSubscription(), $subscription);
-
-        $dispatchForCustomer = $subscription->isNew() && $subscription->getCustomer()->isNew();
-
-        if ($dispatchForCustomer) {
-            $this->events->dispatch(EventType::beforeCreateCustomer(), $subscription->getCustomer());
-        }
-
         $result = $this->gateway->createSubscription($subscription);
         $this->events->dispatch(EventType::afterCreateSubscription(), $result);
-
-        if ($dispatchForCustomer) {
-            $this->events->dispatch(EventType::afterCreateCustomer(), $result->getCustomer());
-        }
 
         return $result;
     }

@@ -5,8 +5,11 @@ namespace TeamGantt\Dues\Processor\Braintree\Repository;
 use Braintree\Gateway;
 use Exception;
 use TeamGantt\Dues\Arr;
+use TeamGantt\Dues\Event\Dispatcher;
+use TeamGantt\Dues\Event\EventType;
 use TeamGantt\Dues\Exception\SubscriptionNotCreatedException;
 use TeamGantt\Dues\Exception\UnknownException;
+use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Processor\Braintree\Mapper\SubscriptionMapper;
@@ -23,6 +26,8 @@ class SubscriptionRepository
     private Gateway $braintree;
 
     private UpdateStrategyFactory $strategies;
+
+    private ?Dispatcher $events;
 
     public function __construct(
         Gateway $braintree,
@@ -53,9 +58,12 @@ class SubscriptionRepository
 
         if ($customer->isNew()) {
             $isNewCustomer = true;
+            $this->dispatch(EventType::beforeCreateCustomer(), $customer);
             $subscription->setCustomer($this->customers->add($customer));
+            $this->dispatch(EventType::afterCreateCustomer(), $subscription->getCustomer());
         }
 
+        $this->dispatch(EventType::beforeCreateSubscription(), $subscription);
         $request = $this->mapper->toRequest($subscription, $plan);
         $request = Arr::dissoc($request, ['id', 'status']);
 
@@ -67,9 +75,13 @@ class SubscriptionRepository
         if ($result->success) {
             $newSubscription = $this->mapper->fromResult($result->subscription);
 
-            return $newSubscription
+            $result = $newSubscription
                 ->setCustomer($subscription->getCustomer())
                 ->setPlan($plan);
+
+            $this->dispatch(EventType::afterCreateSubscription(), $result);
+
+            return $result;
         }
 
         if (!$isNewCustomer) {
@@ -138,6 +150,11 @@ class SubscriptionRepository
         return array_values(array_filter($subscriptions, fn (Subscription $sub) => in_array($sub->getStatus(), $statuses)));
     }
 
+    public function setDispatcher(Dispatcher $events): void
+    {
+        $this->events = $events;
+    }
+
     /**
      * @param Subscription[] $subscriptions
      */
@@ -160,5 +177,17 @@ class SubscriptionRepository
 
             $subscription->setPlan($hydrated);
         }
+    }
+
+    /**
+     * @param Subscription|Customer $model
+     */
+    private function dispatch(EventType $type, $model): void
+    {
+        if (null === $this->events) {
+            return;
+        }
+
+        $this->events->dispatch($type, $model);
     }
 }

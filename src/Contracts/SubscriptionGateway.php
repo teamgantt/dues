@@ -3,6 +3,7 @@
 namespace TeamGantt\Dues\Contracts;
 
 use DateTime;
+use TeamGantt\Dues\Event\Dispatcher;
 use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\Customer\CustomerSession;
 use TeamGantt\Dues\Model\Modifier\AddOn;
@@ -84,4 +85,9 @@ interface SubscriptionGateway
     public function findPlanById(string $planId): ?Plan;
 
     public function makeSubscriptionQuery(): SubscriptionQuery;
+
+    /**
+     * @internal this is so dues can pass event dispatch control to an individual gateway
+     */
+    public function setDispatcher(Dispatcher $events): void;
 }
