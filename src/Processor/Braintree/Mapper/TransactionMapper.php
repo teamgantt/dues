@@ -6,6 +6,7 @@ use Braintree\Transaction as BraintreeTransaction;
 use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\Money;
 use TeamGantt\Dues\Model\Plan;
+use TeamGantt\Dues\Model\Plan\NullPlan;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Model\Transaction;
 use TeamGantt\Dues\Model\Transaction\Status;
@@ -37,7 +38,7 @@ class TransactionMapper
             ->setCreatedAt($result->createdAt)
             ->setAddOns($this->addOnMapper->fromResults($result->addOns))
             ->setDiscounts($this->discountMapper->fromResults($result->discounts))
-            ->setPlan(new Plan($result->planId))
+            ->setPlan($result->planId ? new Plan($result->planId) : new NullPlan())
             ->setType($this->getType($result));
     }
 
