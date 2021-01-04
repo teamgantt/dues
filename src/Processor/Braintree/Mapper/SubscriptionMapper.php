@@ -47,7 +47,7 @@ class SubscriptionMapper
             'startDate' => 'firstBillingDate',
         ]);
 
-        unset($request['customer']);
+        $request = Arr::dissoc($request, ['customer', 'daysPastDue']);
 
         $request = Arr::updateIn($request, [], function (array $r) {
             if (isset($r['paymentMethodToken']['token'])) {
