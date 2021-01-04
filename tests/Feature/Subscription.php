@@ -56,6 +56,33 @@ trait Subscription
      *
      * @return void
      */
+    public function testCreateSubscriptionWithDaysPastDue(callable $customerFactory)
+    {
+        $customer = $customerFactory($this->dues);
+        $plan = $this->dues->findPlanById('test-plan-c-yearly');
+        $now = new DateTime('now', new DateTimeZone('UTC'));
+        $startDate = $now->add(new DateInterval('P1D')); // start 1 day in the future
+
+        $subscription = (new SubscriptionBuilder())
+            ->withCustomer($customer)
+            ->withPlan($plan)
+            ->withStartDate($startDate)
+            ->withDaysPastDue(20) // this value should not be included in the request
+            ->build();
+
+        $subscription = $this->dues->createSubscription($subscription);
+
+        $this->assertFalse($subscription->getCustomer()->isNew());
+        $this->assertFalse($subscription->isNew());
+        $this->assertEquals(Status::pending(), $subscription->getStatus());
+    }
+
+    /**
+     * @group integration
+     * @dataProvider customerProvider
+     *
+     * @return void
+     */
     public function testCreateSubscriptionWithListener(callable $customerFactory)
     {
         $customer = $customerFactory($this->dues);
