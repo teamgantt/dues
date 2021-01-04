@@ -10,7 +10,7 @@ use TeamGantt\Dues\Model\Address\State;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\PaymentMethod\Nonce;
 use TeamGantt\Dues\Model\PaymentMethod\Token;
-use TypeError;
+use Throwable;
 
 class PaymentMethodMapper
 {
@@ -55,7 +55,7 @@ class PaymentMethodMapper
             $state = null;
             try {
                 $state = new State($billingAddress->region);
-            } catch (TypeError $e) {
+            } catch (Throwable $e) {
                 // we tried
             }
             $token->setBillingAddress(new Address($state, $billingAddress->postalCode));
