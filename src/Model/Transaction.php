@@ -13,7 +13,7 @@ class Transaction extends Entity
 {
     use HasModifiers;
 
-    protected Subscription $subscription;
+    protected ?Subscription $subscription;
 
     protected Customer $customer;
 
@@ -29,7 +29,7 @@ class Transaction extends Entity
 
     protected DateTime $createdAt;
 
-    public function __construct(string $id = '', Subscription $subscription)
+    public function __construct(string $id = '', ?Subscription $subscription = null)
     {
         parent::__construct($id);
         $this->subscription = $subscription;
@@ -115,7 +115,7 @@ class Transaction extends Entity
         return $this;
     }
 
-    public function getSubscription(): Subscription
+    public function getSubscription(): ?Subscription
     {
         return $this->subscription;
     }

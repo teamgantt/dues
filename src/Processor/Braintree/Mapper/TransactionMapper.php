@@ -28,7 +28,7 @@ class TransactionMapper
 
     public function fromResult(BraintreeTransaction $result): Transaction
     {
-        $subscription = new Subscription($result->subscriptionId);
+        $subscription = $result->subscriptionId ? new Subscription((string) $result->subscriptionId) : null;
         $transaction = new Transaction($result->id, $subscription);
 
         return $transaction
