@@ -44,6 +44,10 @@ class UpdateStrategyFactory
 
         $changeBillingCycle = new ChangeBillingCycleStrategy($braintree, $mapper, $subscriptions, $plans);
 
+        if ($subscription->is(Status::pastDue())) {
+            return new PastDueUpdateStrategy($braintree, $mapper, $subscriptions, $plans, $changeBillingCycle);
+        }
+
         return new DefaultUpdateStrategy($braintree, $mapper, $subscriptions, $plans, $changeBillingCycle);
     }
 }
