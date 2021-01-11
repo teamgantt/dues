@@ -6,6 +6,9 @@ use DateTime;
 use DateTimeZone;
 use TeamGantt\Dues\Model\Modifier\HasModifiers;
 use TeamGantt\Dues\Model\Plan\NullPlan;
+use TeamGantt\Dues\Model\Transaction\CreditCardDetails;
+use TeamGantt\Dues\Model\Transaction\PaymentInstrumentType;
+use TeamGantt\Dues\Model\Transaction\PayPalDetails;
 use TeamGantt\Dues\Model\Transaction\Status;
 use TeamGantt\Dues\Model\Transaction\Type;
 
@@ -27,7 +30,13 @@ class Transaction extends Entity
 
     protected Status $status;
 
+    protected PaymentInstrumentType $paymentInstrumentType;
+
     protected DateTime $createdAt;
+
+    protected ?CreditCardDetails $creditCardDetails = null;
+
+    protected ?PayPalDetails $payPalDetails = null;
 
     public function __construct(string $id = '', ?Subscription $subscription = null)
     {
@@ -37,6 +46,7 @@ class Transaction extends Entity
         $this->amount = new Money(0.00);
         $this->type = Type::initialized();
         $this->status = Status::initialized();
+        $this->paymentInstrumentType = PaymentInstrumentType::initialized();
         $this->createdAt = new DateTime('now', new DateTimeZone('UTC'));
     }
 
@@ -141,6 +151,51 @@ class Transaction extends Entity
     public function setCustomer(Customer $customer): self
     {
         $this->customer = $customer;
+
+        return $this;
+    }
+
+    public function getPaymentInstrumentType(): PaymentInstrumentType
+    {
+        return $this->paymentInstrumentType;
+    }
+
+    /**
+     * @return Transaction
+     */
+    public function setPaymentInstrumentType(PaymentInstrumentType $paymentInstrumentType): self
+    {
+        $this->paymentInstrumentType = $paymentInstrumentType;
+
+        return $this;
+    }
+
+    public function getCreditCardDetails(): ?CreditCardDetails
+    {
+        return $this->creditCardDetails;
+    }
+
+    /**
+     * @return Transaction
+     */
+    public function setCreditCardDetails(CreditCardDetails $creditCardDetails): self
+    {
+        $this->creditCardDetails = $creditCardDetails;
+
+        return $this;
+    }
+
+    public function getPayPalDetails(): ?PayPalDetails
+    {
+        return $this->payPalDetails;
+    }
+
+    /**
+     * @return Transaction
+     */
+    public function setPayPalDetails(PayPalDetails $payPalDetails): self
+    {
+        $this->payPalDetails = $payPalDetails;
 
         return $this;
     }
