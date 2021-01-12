@@ -2,8 +2,10 @@
 
 namespace TeamGantt\Dues\Tests\Processor\Braintree\Mapper;
 
+use Braintree\PaymentInstrumentType;
 use Braintree\Transaction;
 use Braintree\Transaction\CustomerDetails;
+use Braintree\Transaction\PayPalDetails;
 use DateTime;
 use PHPUnit\Framework\TestCase;
 use TeamGantt\Dues\Processor\Braintree\Mapper\AddOnMapper;
@@ -25,6 +27,8 @@ final class TransactionMapperTest extends TestCase
             'createdAt' => new DateTime(),
             'planId' => null,
             'type' => Transaction::SALE,
+            'paymentInstrumentType' => PaymentInstrumentType::PAYPAL_ACCOUNT,
+            'paypalDetails' => new PayPalDetails(['payerEmail' => 'paypalperson@coolperon.com']),
         ]);
         $result->customerDetails = new CustomerDetails([
             'id' => '123',
