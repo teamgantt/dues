@@ -12,6 +12,7 @@ use TeamGantt\Dues\Exception\SubscriptionNotCreatedException;
 use TeamGantt\Dues\Exception\SubscriptionNotUpdatedException;
 use TeamGantt\Dues\Model\Modifier\AddOn;
 use TeamGantt\Dues\Model\Modifier\Discount;
+use TeamGantt\Dues\Model\Money;
 use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Price;
 use TeamGantt\Dues\Model\Subscription as ModelSubscription;
@@ -504,6 +505,12 @@ trait Subscription
         $this->assertEquals(Status::active(), $subscription->getStatus());
         $this->assertNotEmpty($subscription->getTransactions());
         $this->assertEquals(0, $subscription->getDaysPastDue());
+
+        $this->assertNotEmpty($subscription->getStatusHistory());
+        $this->assertEquals(Status::active(), $subscription->getStatusHistory()[0]->getStatus());
+        $this->assertEquals('test-plan-c-yearly', $subscription->getStatusHistory()[0]->getPlanId());
+        $this->assertEquals(new Money(0), $subscription->getStatusHistory()[0]->getBalance());
+        $this->assertEquals(new Money(150), $subscription->getStatusHistory()[0]->getPrice());
     }
 
     /**
