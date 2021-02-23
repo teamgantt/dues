@@ -21,6 +21,7 @@ use TeamGantt\Dues\Processor\Braintree\Mapper\CustomerMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\DiscountMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\PaymentMethodMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\PlanMapper;
+use TeamGantt\Dues\Processor\Braintree\Mapper\StatusHistoryMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\SubscriptionMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\TransactionMapper;
 use TeamGantt\Dues\Processor\Braintree\Query\SubscriptionQuery;
@@ -66,7 +67,8 @@ class Braintree implements SubscriptionGateway
         $addOnMapper = new AddOnMapper();
         $discountMapper = new DiscountMapper();
         $transactionMapper = new TransactionMapper($addOnMapper, $discountMapper);
-        $subscriptionMapper = new SubscriptionMapper($addOnMapper, $discountMapper, $transactionMapper);
+        $statusHistoryMapper = new StatusHistoryMapper();
+        $subscriptionMapper = new SubscriptionMapper($addOnMapper, $discountMapper, $transactionMapper, $statusHistoryMapper);
         $paymentMethodMapper = new PaymentMethodMapper();
         $customerMapper = new CustomerMapper($paymentMethodMapper);
         $planMapper = new PlanMapper($addOnMapper, $discountMapper);

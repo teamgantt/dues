@@ -13,6 +13,7 @@ use TeamGantt\Dues\Model\Subscription\Modifier\Operation;
 use TeamGantt\Dues\Model\Subscription\Modifier\OperationType;
 use TeamGantt\Dues\Model\Subscription\Modifiers;
 use TeamGantt\Dues\Model\Subscription\Status;
+use TeamGantt\Dues\Model\Subscription\StatusHistory;
 
 class Subscription extends Entity implements Arrayable
 {
@@ -39,6 +40,11 @@ class Subscription extends Entity implements Arrayable
     protected Modifiers $discounts;
 
     /**
+     * @var StatusHistory[]
+     */
+    protected array $statusHistory = [];
+
+    /**
      * @var Transaction[]
      */
     protected array $transactions = [];
@@ -63,6 +69,7 @@ class Subscription extends Entity implements Arrayable
             'startDate' => $this->getStartDate(),
             'price' => empty($price) ? null : $price->toArray(),
             'status' => $this->getStatus(),
+            'statusHistory' => $this->getStatusHistory(),
             'daysPastDue' => $this->getDaysPastDue(),
             'customer' => $this->getCustomer()->toArray(),
             'payment' => empty($payment) ? null : $payment->toArray(),
@@ -87,6 +94,7 @@ class Subscription extends Entity implements Arrayable
         }
 
         $this->setStatus($other->getStatus());
+        $this->setStatusHistory($other->getStatusHistory());
 
         $this->setDaysPastDue($other->getDaysPastDue());
 
@@ -306,11 +314,29 @@ class Subscription extends Entity implements Arrayable
     }
 
     /**
+     * @return StatusHistory[]
+     */
+    public function getStatusHistory(): array
+    {
+        return $this->statusHistory;
+    }
+
+    /**
      * @return Subscription
      */
     public function setStatus(Status $status): self
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    /**
+     * @param StatusHistory[] $statusHistory
+     */
+    public function setStatusHistory(array $statusHistory): self
+    {
+        $this->statusHistory = $statusHistory;
 
         return $this;
     }

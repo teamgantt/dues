@@ -125,6 +125,16 @@ class SubscriptionBuilder extends Builder
     }
 
     /**
+     * @param StatusHistory[] $statusHistory
+     *
+     * @return SubscriptionBuilder
+     */
+    public function withStatusHistory(array $statusHistory): self
+    {
+        return $this->with('statusHistory', $statusHistory);
+    }
+
+    /**
      * @return SubscriptionBuilder
      */
     public function withDiscount(Discount $discount): self
@@ -169,6 +179,8 @@ class SubscriptionBuilder extends Builder
         }
 
         $subscription->setPlan($this->data['plan'] ?? new NullPlan());
+
+        $subscription->setStatusHistory($this->data['statusHistory'] ?? []);
 
         $this->reset();
 

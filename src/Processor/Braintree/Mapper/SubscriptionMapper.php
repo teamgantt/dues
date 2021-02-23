@@ -25,14 +25,18 @@ class SubscriptionMapper
 
     private ModifierMapper $modifierMapper;
 
+    private StatusHistoryMapper $statusHistoryMapper;
+
     public function __construct(
         AddOnMapper $addOnMapper,
         DiscountMapper $discountMapper,
-        TransactionMapper $transactionMapper
+        TransactionMapper $transactionMapper,
+        StatusHistoryMapper $statusHistoryMapper
     ) {
         $this->addOnMapper = $addOnMapper;
         $this->discountMapper = $discountMapper;
         $this->transactionMapper = $transactionMapper;
+        $this->statusHistoryMapper = $statusHistoryMapper;
         $this->modifierMapper = new ModifierMapper();
     }
 
@@ -98,6 +102,7 @@ class SubscriptionMapper
         $plan = new Plan($result->planId);
         $addOns = $this->addOnMapper->fromResults($result->addOns);
         $discounts = $this->discountMapper->fromResults($result->discounts);
+        $statusHistory = $this->statusHistoryMapper->fromResults($result->statusHistory);
 
         $subscription = $builder
             ->withId($result->id)
@@ -105,6 +110,7 @@ class SubscriptionMapper
             ->withBalance($balance)
             ->withPrice($price)
             ->withStatus($status)
+            ->withStatusHistory($statusHistory)
             ->withDaysPastDue($daysPastDue)
             ->withPaymentMethod($paymentMethod)
             ->withPlan($plan)
