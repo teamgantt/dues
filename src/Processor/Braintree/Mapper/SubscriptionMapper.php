@@ -6,6 +6,7 @@ use Braintree;
 use TeamGantt\Dues\Arr;
 use TeamGantt\Dues\Exception\UnknownStatusException;
 use TeamGantt\Dues\Model\Money;
+use TeamGantt\Dues\Model\PaymentMethod\NullPaymentMethod;
 use TeamGantt\Dues\Model\PaymentMethod\Token;
 use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Price;
@@ -98,7 +99,9 @@ class SubscriptionMapper
         $price = new Price(floatval($result->price));
         $status = $this->getStatusFromResult($result);
         $daysPastDue = $result->daysPastDue ?? 0;
-        $paymentMethod = new Token($result->paymentMethodToken);
+        $paymentMethod = $result->paymentMethodToken
+            ? new Token($result->paymentMethodToken)
+            : new NullPaymentMethod();
         $plan = new Plan($result->planId);
         $addOns = $this->addOnMapper->fromResults($result->addOns);
         $discounts = $this->discountMapper->fromResults($result->discounts);
