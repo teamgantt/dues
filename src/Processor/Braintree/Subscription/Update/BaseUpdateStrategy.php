@@ -40,7 +40,7 @@ abstract class BaseUpdateStrategy implements UpdateStrategy
     protected function doBraintreeUpdate(Subscription $subscription, ?Plan $newPlan = null)
     {
         $request = $this->mapper->toRequest($subscription, $newPlan);
-        $request = Arr::dissoc($request, ['firstBillingDate', 'status', 'statusHistory']);
+        $request = Arr::dissoc($request, ['firstBillingDate', 'nextBillingPeriodAmount', 'status', 'statusHistory']);
         $request['options'] = ['prorateCharges' => true];
 
         return $this

@@ -4,6 +4,7 @@ namespace TeamGantt\Dues\Processor\Braintree\Query;
 
 use Braintree\Gateway;
 use Braintree\SubscriptionSearch;
+use DateTimeInterface;
 use TeamGantt\Dues\Exception\InvalidSubscriptionSearchParamException;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Processor\Braintree\Mapper\SubscriptionMapper;
@@ -36,6 +37,20 @@ class SubscriptionQuery
         } else {
             throw new InvalidSubscriptionSearchParamException('Comparisons can only be "<=", "=", or ">="');
         }
+
+        return $this;
+    }
+
+    public function whereNextBillingDateIs(DateTimeInterface $date): self
+    {
+        $this->searchParams['nextBillingDate'] = SubscriptionSearch::nextBillingDate()->is($date);
+
+        return $this;
+    }
+
+    public function whereSubscriptionIsPending(): self
+    {
+        $this->searchParams['status'] = SubscriptionSearch::status()->in([BraintreeSubscription::PENDING]);
 
         return $this;
     }

@@ -39,6 +39,8 @@ class Subscription extends Entity implements Arrayable
 
     protected Modifiers $discounts;
 
+    protected ?Money $nextBillingPeriodAmount;
+
     /**
      * @var StatusHistory[]
      */
@@ -74,6 +76,7 @@ class Subscription extends Entity implements Arrayable
             'customer' => $this->getCustomer()->toArray(),
             'payment' => empty($payment) ? null : $payment->toArray(),
             'plan' => $this->plan->toArray(),
+            'nextBillingPeriodAmount' => $this->getNextBillingPeriodAmount(),
         ]);
     }
 
@@ -480,6 +483,22 @@ class Subscription extends Entity implements Arrayable
     public function addTransaction(Transaction $transaction): self
     {
         $this->transactions[] = $transaction;
+
+        return $this;
+    }
+
+    public function getNextBillingPeriodAmount(): ?Money
+    {
+        if (isset($this->nextBillingPeriodAmount)) {
+            return $this->nextBillingPeriodAmount;
+        }
+
+        return null;
+    }
+
+    public function setNextBillingPeriodAmount(Money $amount): self
+    {
+        $this->nextBillingPeriodAmount = $amount;
 
         return $this;
     }
