@@ -12,6 +12,7 @@ use TeamGantt\Dues\Exception\UnknownException;
 use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Model\Subscription\Status;
+use TeamGantt\Dues\Processor\Braintree\Hydrator\SubscriptionHydrator;
 use TeamGantt\Dues\Processor\Braintree\Mapper\SubscriptionMapper;
 use TeamGantt\Dues\Processor\Braintree\Subscription\Update\UpdateStrategyFactory;
 
@@ -27,18 +28,22 @@ class SubscriptionRepository
 
     private UpdateStrategyFactory $strategies;
 
+    private SubscriptionHydrator $hydrator;
+
     private ?Dispatcher $events;
 
     public function __construct(
         Gateway $braintree,
         SubscriptionMapper $mapper,
         CustomerRepository $customers,
-        PlanRepository $plans)
+        PlanRepository $plans,
+        SubscriptionHydrator $hydrator)
     {
         $this->braintree = $braintree;
         $this->mapper = $mapper;
         $this->customers = $customers;
         $this->plans = $plans;
+        $this->hydrator = $hydrator;
         $this->strategies = new UpdateStrategyFactory($this->braintree, $this->mapper, $this, $plans);
     }
 
@@ -100,7 +105,7 @@ class SubscriptionRepository
                 ->find($id);
 
             $subscription = $this->mapper->fromResult($result);
-            $this->hydratePlans([$subscription]);
+            $this->hydrator->hydrate([$subscription]);
 
             return $subscription;
         } catch (Exception $e) {
@@ -141,7 +146,7 @@ class SubscriptionRepository
             return array_map([$this->mapper, 'fromResult'], $pm->subscriptions);
         });
 
-        $this->hydratePlans($subscriptions);
+        $this->hydrator->hydrate($subscriptions);
 
         if (empty($statuses)) {
             return $subscriptions;
@@ -153,30 +158,6 @@ class SubscriptionRepository
     public function setDispatcher(Dispatcher $events): void
     {
         $this->events = $events;
-    }
-
-    /**
-     * @param Subscription[] $subscriptions
-     */
-    private function hydratePlans(array $subscriptions): void
-    {
-        $cache = [];
-
-        foreach ($subscriptions as $subscription) {
-            $plan = $subscription->getPlan();
-
-            $hydrated = isset($cache[$plan->getId()]) ? $cache[$plan->getId()] : $this->plans->find($plan->getId());
-
-            if (null === $hydrated) {
-                continue;
-            }
-
-            if (!isset($cache[$hydrated->getId()])) {
-                $cache[$hydrated->getId()] = $hydrated;
-            }
-
-            $subscription->setPlan($hydrated);
-        }
     }
 
     /**
