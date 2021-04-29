@@ -35,4 +35,15 @@ class PaymentMethodRepository
 
         return $this->mapper->fromResult($result->paymentMethod);
     }
+
+    public function findByToken(string $token): ?Token
+    {
+        try {
+            $result = $this->braintree->paymentMethod()->find($token);
+
+            return $this->mapper->fromResult($result);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
 }

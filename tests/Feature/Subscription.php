@@ -49,6 +49,25 @@ trait Subscription
         $this->assertFalse($subscription->getCustomer()->isNew());
         $this->assertFalse($subscription->isNew());
         $this->assertEquals(Status::pending(), $subscription->getStatus());
+
+        // Test the query to ensure it works
+        $query = $this->dues->makeSubscriptionQuery();
+        $pendingSubscriptions = $query
+            ->whereSubscriptionIsPending()
+            ->whereNextBillingDateIs($startDate)
+            ->fetch();
+        $this->assertGreaterThan(0, count($pendingSubscriptions));
+
+        /**
+         * @var ModelSubscription
+         */
+        $firstPending = $pendingSubscriptions[0];
+
+        // Test the response of the query to ensure it is hydrating properly.
+        $this->assertNotEmpty($firstPending->getCustomer()->getFirstName());
+        $this->assertNotEmpty($firstPending->getCustomer()->getLastName());
+        $this->assertNotEmpty($firstPending->getCustomer()->getEmailAddress());
+        $this->assertGreaterThan(0, $firstPending->getNextBillingPeriodAmount()->getAmount());
     }
 
     /**

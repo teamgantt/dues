@@ -148,6 +148,14 @@ class SubscriptionBuilder extends Builder
         return $this;
     }
 
+    /**
+     * @return SubscriptionBuilder
+     */
+    public function withNextBillingPeriodAmount(Money $amount): self
+    {
+        return $this->with('nextBillingPeriodAmount', $amount);
+    }
+
     public function build(): Subscription
     {
         $subscription = (new Subscription($this->getId()))
@@ -166,6 +174,10 @@ class SubscriptionBuilder extends Builder
 
         if (isset($this->data['balance'])) {
             $subscription->setBalance($this->data['balance']);
+        }
+
+        if (isset($this->data['nextBillingPeriodAmount'])) {
+            $subscription->setNextBillingPeriodAmount($this->data['nextBillingPeriodAmount']);
         }
 
         $addOns = $this->data['addOns'] ?? [];

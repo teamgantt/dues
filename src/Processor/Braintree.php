@@ -16,6 +16,7 @@ use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Transaction;
+use TeamGantt\Dues\Processor\Braintree\Hydrator\SubscriptionHydrator;
 use TeamGantt\Dues\Processor\Braintree\Mapper\AddOnMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\CustomerMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\DiscountMapper;
@@ -55,6 +56,8 @@ class Braintree implements SubscriptionGateway
 
     private ?Dispatcher $events;
 
+    private SubscriptionHydrator $hydrator;
+
     /**
      * @param array<mixed> $config
      *
@@ -79,9 +82,10 @@ class Braintree implements SubscriptionGateway
         $this->paymentMethods = new PaymentMethodRepository($braintree, $paymentMethodMapper);
         $this->customers = new CustomerRepository($braintree, $customerMapper, $this->paymentMethods);
         $this->plans = new PlanRepository($braintree, $planMapper);
+        $this->hydrator = new SubscriptionHydrator($this->customers, $this->plans, $this->paymentMethods);
         $this->discounts = new DiscountRepository($braintree, $discountMapper);
         $this->addOns = new AddOnRepository($braintree, $addOnMapper);
-        $this->subscriptions = new SubscriptionRepository($braintree, $subscriptionMapper, $this->customers, $this->plans);
+        $this->subscriptions = new SubscriptionRepository($braintree, $subscriptionMapper, $this->customers, $this->plans, $this->hydrator);
         $this->transactions = new TransactionRepository($braintree, $transactionMapper);
     }
 
@@ -223,7 +227,7 @@ class Braintree implements SubscriptionGateway
 
     public function makeSubscriptionQuery(): SubscriptionQuery
     {
-        return new SubscriptionQuery($this->braintree, $this->subscriptionMapper);
+        return new SubscriptionQuery($this->braintree, $this->subscriptionMapper, $this->hydrator);
     }
 
     public function setDispatcher(Dispatcher $events): void

@@ -7,6 +7,7 @@ use InvalidArgumentException;
 use TeamGantt\Dues\Arr;
 use TeamGantt\Dues\Model\Address;
 use TeamGantt\Dues\Model\Address\State;
+use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\PaymentMethod\Nonce;
 use TeamGantt\Dues\Model\PaymentMethod\Token;
@@ -49,6 +50,7 @@ class PaymentMethodMapper
         $token = new Token($paymentMethod->token);
         $isDefault = $paymentMethod->isDefault();
         $token->setIsDefaultPaymentMethod($isDefault);
+        $token->setCustomer(new Customer($paymentMethod->customerId));
 
         $billingAddress = $paymentMethod->billingAddress;
         if ($billingAddress instanceof BraintreeAddress) {

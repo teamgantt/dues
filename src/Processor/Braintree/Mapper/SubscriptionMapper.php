@@ -116,8 +116,13 @@ class SubscriptionMapper
             ->withStatusHistory($statusHistory)
             ->withDaysPastDue($daysPastDue)
             ->withPaymentMethod($paymentMethod)
-            ->withPlan($plan)
-            ->build();
+            ->withPlan($plan);
+
+        if (isset($result->nextBillingPeriodAmount)) {
+            $subscription->withNextBillingPeriodAmount(new Money(floatval($result->nextBillingPeriodAmount)));
+        }
+
+        $subscription = $subscription->build();
 
         foreach ($result->transactions as $transaction) {
             $subscription->addTransaction($this->transactionMapper->fromResult($transaction));
