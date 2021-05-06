@@ -6,6 +6,7 @@ use Braintree\Gateway;
 use Braintree\Subscription as BraintreeSubscription;
 use Braintree\SubscriptionSearch;
 use DateTimeInterface;
+use Exception;
 use TeamGantt\Dues\Exception\InvalidSubscriptionSearchParamException;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Processor\Braintree\Hydrator\SubscriptionHydrator;
@@ -58,6 +59,24 @@ class SubscriptionQuery
         $this->searchParams['status'] = SubscriptionSearch::status()->in([BraintreeSubscription::PENDING]);
 
         return $this;
+    }
+
+    public function getById(string $id): ?Subscription
+    {
+        if (empty($id)) {
+            return null;
+        }
+
+        try {
+            $find = $this->gateway->subscription()->find($id);
+
+            $subscription = $this->mapper->fromResult($find);
+            $this->hydrator->hydrate([$subscription]);
+
+            return $subscription;
+        } catch (Exception $e) {
+            return null;
+        }
     }
 
     /**

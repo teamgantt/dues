@@ -57,7 +57,7 @@ class SubscriptionHydrator
 
                 $customer = isset($cache[$token])
                     ? $cache[$token]
-                    : $this->getCustomerBySubscriptionPaymentToken($subscription, $paymentMethod);
+                    : $this->customers->findByPaymentToken($token);
 
                 $cache[$token] = $customer;
             }
@@ -68,32 +68,6 @@ class SubscriptionHydrator
 
             $subscription->setCustomer($customer);
         }
-    }
-
-    /**
-     * Finds the customer based off of the customer id associated with the payment method and appends it back to the Subscription.
-     */
-    private function getCustomerBySubscriptionPaymentToken(Subscription $subscription, Token $paymentMethod): ?Customer
-    {
-        $customer = null;
-        $token = $paymentMethod->getValue();
-        $realPayment = $this->paymentMethods->findByToken($token);
-
-        if ($realPayment instanceof Token) {
-            $customer = $realPayment->getCustomer();
-
-            if ($customer instanceof Customer) {
-                $customerId = $customer->getId();
-                $realCustomer = $this->customers->find($customerId);
-
-                if ($realCustomer instanceof Customer) {
-                    $subscription->setCustomer($realCustomer);
-                    $customer = $realCustomer;
-                }
-            }
-        }
-
-        return $customer;
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace TeamGantt\Dues\Processor\Braintree\Repository;
 
 use Braintree\Customer as BraintreeCustomer;
+use Braintree\CustomerSearch;
 use Braintree\Gateway;
 use Exception;
 use TeamGantt\Dues\Exception\CustomerNotCreatedException;
@@ -119,6 +120,19 @@ class CustomerRepository
     {
         if ($customerResult = $this->findBraintreeCustomer($id)) {
             return $this->mapper->fromResult($customerResult);
+        }
+
+        return null;
+    }
+
+    public function findByPaymentToken(string $tokenId): ?Customer
+    {
+        $customerResult = $this->braintree->customer()->search([
+            CustomerSearch::paymentMethodToken()->is($tokenId),
+        ]);
+
+        foreach ($customerResult as $customer) {
+            return $this->mapper->fromResult($customer);
         }
 
         return null;
