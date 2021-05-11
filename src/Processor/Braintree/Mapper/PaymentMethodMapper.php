@@ -52,6 +52,10 @@ class PaymentMethodMapper
         $token->setIsDefaultPaymentMethod($isDefault);
         $token->setCustomer(new Customer($paymentMethod->customerId));
 
+        if (!isset($paymentMethod->billingAddress)) {
+            return $token;
+        }
+
         $billingAddress = $paymentMethod->billingAddress;
         if ($billingAddress instanceof BraintreeAddress) {
             $state = null;
