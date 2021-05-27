@@ -7,6 +7,7 @@ use PHPUnit\Framework\ExpectationFailedException;
 use SebastianBergmann\RecursionContext\InvalidArgumentException;
 use TeamGantt\Dues\Exception\PaymentMethodNotCreatedException;
 use TeamGantt\Dues\Model\Address;
+use TeamGantt\Dues\Model\Address\Country;
 use TeamGantt\Dues\Model\Address\State;
 use TeamGantt\Dues\Model\Customer\CustomerBuilder;
 use TeamGantt\Dues\Model\PaymentMethod\Nonce;
@@ -55,7 +56,7 @@ trait PaymentMethod
         $customer = $this->dues->createCustomer($customer);
         $paymentMethod = new Nonce('fake-valid-mastercard-nonce');
         $paymentMethod->setCustomer($customer);
-        $paymentMethod->setBillingAddress(new Address(State::Michigan(), '49464'));
+        $paymentMethod->setBillingAddress(new Address(State::Michigan(), '49464', Country::US()));
 
         $paymentMethod = $this->dues->createPaymentMethod($paymentMethod);
         $this->assertInstanceOf(Address::class, $paymentMethod->getBillingAddress());

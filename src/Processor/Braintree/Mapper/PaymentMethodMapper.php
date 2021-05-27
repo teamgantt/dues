@@ -6,6 +6,7 @@ use Braintree\Address as BraintreeAddress;
 use InvalidArgumentException;
 use TeamGantt\Dues\Arr;
 use TeamGantt\Dues\Model\Address;
+use TeamGantt\Dues\Model\Address\Country;
 use TeamGantt\Dues\Model\Address\State;
 use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\PaymentMethod;
@@ -34,7 +35,10 @@ class PaymentMethodMapper
                 return $address;
             }
 
-            return Arr::replaceKeys($address, ['state' => 'region']);
+            return Arr::replaceKeys($address, [
+                'state' => 'region',
+                'country' => 'countryCodeAlpha2',
+            ]);
         });
     }
 
@@ -58,15 +62,31 @@ class PaymentMethodMapper
 
         $billingAddress = $paymentMethod->billingAddress;
         if ($billingAddress instanceof BraintreeAddress) {
-            $state = null;
-            try {
-                $state = new State($billingAddress->region);
-            } catch (Throwable $e) {
-                // we tried
-            }
-            $token->setBillingAddress(new Address($state, $billingAddress->postalCode));
+            $state = $this->getStateFromAddress($billingAddress);
+            $country = $this->getCountryFromAddress($billingAddress);
+
+            $token->setBillingAddress(new Address($state, $billingAddress->postalCode, $country));
         }
 
         return $token;
+    }
+
+    protected function getStateFromAddress(BraintreeAddress $address): ?State
+    {
+        try {
+            return new State($address->region);
+        } catch (Throwable $e) {
+            return null;
+        }
+    }
+
+    protected function getCountryFromAddress(BraintreeAddress $address): ?Country
+    {
+        try {
+            // countryCodeAlpha2 exists but is not documented on the BraintreeAddress
+            return new Country($address->countryCodeAlpha2); // @phpstan-ignore-line
+        } catch (Throwable $e) {
+            return null;
+        }
     }
 }
