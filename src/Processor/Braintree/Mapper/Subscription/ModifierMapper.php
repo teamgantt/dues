@@ -54,10 +54,13 @@ class ModifierMapper
                 $default = Arr::replaceKeys($newDefault->toArray(), ['id' => 'inheritedFromId']);
 
                 if (is_array($modifiers)) {
-                    // if new modifier is in default, merge modifiers
-                    $userSuppliedModifiers = Arr::filter($modifiers, fn ($modifier) => $modifier['inheritedFromId'] !== $default['inheritedFromId']);
+                    $otherUserSuppliedModifiers = Arr::filter($modifiers, fn ($modifier) => $modifier['inheritedFromId'] !== $default['inheritedFromId']);
+                    $defaultModifierWithProvidedUpdates = [array_merge(
+                        $default,
+                        ...Arr::filter($modifiers, fn ($modifier) => $modifier['inheritedFromId'] === $default['inheritedFromId']) ?? []
+                    )];
 
-                    return [...$userSuppliedModifiers, $default];
+                    return array_merge($otherUserSuppliedModifiers, $defaultModifierWithProvidedUpdates);
                 }
 
                 return [$default];
