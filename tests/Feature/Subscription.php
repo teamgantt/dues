@@ -799,4 +799,48 @@ trait Subscription
         $overdue = $query->whereDaysPastDue('=', -2)->fetch();
         $this->assertEquals(0, count($overdue));
     }
+
+    /**
+     * @group integration
+     * @dataProvider customerProvider
+     */
+    public function testSubscriptionUpgradeCrossPlanWithUpdateToDefaultAddOns(callable $customerFactory)
+    {
+        $customer = $customerFactory($this->dues);
+
+        // Create initial subscription
+        $plan = $this->dues->findPlanById('401m');
+        $baseSubscription = (new SubscriptionBuilder())
+            ->withCustomer($customer)
+            ->withPlan($plan)
+            ->withAddOn(new AddOn('401m-u', 8))
+            ->build();
+
+        $baseSubscription = $this->dues->createSubscription($baseSubscription);
+        $customer = $baseSubscription->getCustomer();
+        $customerId = $customer->getId();
+
+        // Load subscription from Braintree
+        $subscriptions = $this->dues->findSubscriptionsByCustomerId($customerId);
+        $originalSubscription = $subscriptions[0];
+
+        // Set new plan
+        $newPlan = $this->dues->findPlanById('402m');
+        $originalSubscription->setPlan($newPlan);
+
+        // Update default modifier
+        $originalSubscription->addAddOn(new AddOn('402m-u', 8));
+
+        // Add new modifier
+        $originalSubscription->addAddOn(new AddOn('sales_tax', 1, new Price(1.00)));
+
+        $updatedSubscription = $this->dues->updateSubscription($originalSubscription);
+
+        $addOns = $updatedSubscription->getAddOns();
+        $salesTaxAddOn = Arr::filter($addOns, fn ($addOn) => 'sales_tax' === $addOn->getId())[0];
+        $usersAddOn = Arr::filter($addOns, fn ($addOn) => '402m-u' === $addOn->getId())[0];
+
+        $this->assertEquals(8, $usersAddOn->getQuantity());
+        $this->assertEquals(1, $salesTaxAddOn->getQuantity());
+    }
 }
