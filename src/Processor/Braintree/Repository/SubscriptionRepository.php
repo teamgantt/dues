@@ -70,7 +70,7 @@ class SubscriptionRepository
 
         $this->dispatch(EventType::beforeCreateSubscription(), $subscription);
         $request = $this->mapper->toRequest($subscription, $plan);
-        $request = Arr::dissoc($request, ['id', 'status', 'statusHistory']);
+        $request = Arr::dissoc($request, ['id', 'status', 'statusHistory', 'options']);
 
         $result = $this
             ->braintree

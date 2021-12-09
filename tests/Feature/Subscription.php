@@ -194,6 +194,45 @@ trait Subscription
     }
 
     /**
+     * Test modifying a subscription with or without proration.
+     *
+     * @group integration
+     * @dataProvider customerProvider
+     *
+     * @return void
+     */
+    public function testUpdateSubscriptionPlanWithProration(callable $customerFactory)
+    {
+        // create initial subscription
+        $customer = $customerFactory($this->dues);
+        $plan = $this->dues->findPlanById('401m');
+        $baseSubscription = (new SubscriptionBuilder())
+            ->withCustomer($customer)
+            ->withPlan($plan)
+            ->withAddOn(new AddOn('401m-u', 1))
+            ->build();
+
+        $subscription = $this->dues->createSubscription($baseSubscription);
+
+        $this->assertEquals(count($subscription->getTransactions()), 1);
+
+        // upgrades with proration cause additional charge
+        $addOn = $subscription->getAddOns()[0];
+        $addOn->setQuantity(3);
+        $prorated = $this->dues->updateSubscription($subscription);
+
+        $this->assertEquals(count($prorated->getTransactions()), 2);
+
+        // upgrades without prorations do not charge the subscription
+        $addOn = $prorated->getAddOns()[0];
+        $addOn->setQuantity(10);
+        $subscription->setIsProrated(false);
+        $notProrated = $this->dues->updateSubscription($subscription);
+
+        $this->assertEquals(count($notProrated->getTransactions()), 2);
+    }
+
+    /**
      * @group integration
      * @dataProvider subscriptionProvider
      *

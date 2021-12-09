@@ -52,7 +52,9 @@ class SubscriptionMapper
             'startDate' => 'firstBillingDate',
         ]);
 
-        $request = Arr::dissoc($request, ['customer', 'daysPastDue']);
+        $request['options'] = ['prorateCharges' => $request['isProrated']];
+
+        $request = Arr::dissoc($request, ['customer', 'daysPastDue', 'isProrated']);
 
         $request = Arr::updateIn($request, [], function (array $r) {
             if (isset($r['paymentMethodToken']['token'])) {

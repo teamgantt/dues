@@ -41,6 +41,8 @@ class Subscription extends Entity implements Arrayable
 
     protected ?Money $nextBillingPeriodAmount;
 
+    protected bool $isProrated = true;
+
     /**
      * @var StatusHistory[]
      */
@@ -66,18 +68,23 @@ class Subscription extends Entity implements Arrayable
         $price = $this->getPrice();
         $payment = $this->getPaymentMethod();
 
-        return array_filter([
-            'id' => $this->getId(),
-            'startDate' => $this->getStartDate(),
-            'price' => empty($price) ? null : $price->toArray(),
-            'status' => $this->getStatus(),
-            'statusHistory' => $this->getStatusHistory(),
-            'daysPastDue' => $this->getDaysPastDue(),
-            'customer' => $this->getCustomer()->toArray(),
-            'payment' => empty($payment) ? null : $payment->toArray(),
-            'plan' => $this->plan->toArray(),
-            'nextBillingPeriodAmount' => $this->getNextBillingPeriodAmount(),
-        ]);
+        return array_merge(
+            array_filter([
+                'id' => $this->getId(),
+                'startDate' => $this->getStartDate(),
+                'price' => empty($price) ? null : $price->toArray(),
+                'status' => $this->getStatus(),
+                'statusHistory' => $this->getStatusHistory(),
+                'daysPastDue' => $this->getDaysPastDue(),
+                'customer' => $this->getCustomer()->toArray(),
+                'payment' => empty($payment) ? null : $payment->toArray(),
+                'plan' => $this->plan->toArray(),
+                'nextBillingPeriodAmount' => $this->getNextBillingPeriodAmount(),
+            ]),
+            [
+                'isProrated' => $this->isProrated(),
+            ]
+        );
     }
 
     /**
@@ -506,5 +513,17 @@ class Subscription extends Entity implements Arrayable
     private function setPriceFromPlan(Plan $plan): void
     {
         $plan->getPrice()->applyToSubscription($this);
+    }
+
+    public function setIsProrated(bool $isProrated): self
+    {
+        $this->isProrated = $isProrated;
+
+        return $this;
+    }
+
+    public function isProrated(): bool
+    {
+        return $this->isProrated;
     }
 }
