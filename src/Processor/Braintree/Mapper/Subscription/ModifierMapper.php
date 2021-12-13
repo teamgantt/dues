@@ -103,6 +103,43 @@ class ModifierMapper
     }
 
     /**
+     * Determines if a modifier should be added or modified on an existing Subscription based off of the Plan defaults & which modifiers are already on the Subscription.
+     */
+    private function isModifierAddedOnExistingSubscription(bool $isDefaultModifier, Subscription $subscription, ModifierType $modifierType, Modifier $modifier): bool
+    {
+        $hasFnName = $modifierType->equals(ModifierType::addOn()) ? 'hasAddOn' : 'hasDiscount';
+        $previousPlanFnName = $modifierType->equals(ModifierType::addOn()) ? 'getInitialAddOns' : 'getInitialDiscounts';
+
+        /**
+         * @var bool
+         */
+        $planHasModifier = $subscription->getPlan()->{$hasFnName}($modifier->getId());
+
+        /**
+         * @var Modifier[]
+         */
+        $subscriptionPreviousModifiers = $subscription->{$previousPlanFnName}();
+
+        $isAdding = $isDefaultModifier || $planHasModifier;
+
+        if (!$isAdding) {
+            return false;
+        }
+
+        $isModifierOnExistingSubscription = array_reduce(
+            $subscriptionPreviousModifiers,
+            fn (bool $isExisting, Modifier $m) => $isExisting || $m->getId() === $modifier->getId(),
+            false
+        );
+
+        if ($isModifierOnExistingSubscription) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Determines how modifiers are applied to a new Subscription in Braintree.
      *
      * @return mixed[]
@@ -123,11 +160,7 @@ class ModifierMapper
 
             // when changing plans, allow modifications to default AddOns
             if (!$subscription->isNew()) {
-                if ($modifierType->equals(ModifierType::addOn())) {
-                    $isAdding = $isAdding || $subscription->getPlan()->hasAddOn($modifier->getId());
-                } else {
-                    $isAdding = $isAdding || $subscription->getPlan()->hasDiscount($modifier->getId());
-                }
+                $isAdding = $this->isModifierAddedOnExistingSubscription($isAdding, $subscription, $modifierType, $modifier);
             }
 
             if ($type->equals(OperationType::add()) && true === $isAdding) {

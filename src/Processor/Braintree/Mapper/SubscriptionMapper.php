@@ -131,8 +131,11 @@ class SubscriptionMapper
         }
 
         $subscription->setAddOns(new Modifiers($addOns));
+        $subscription->setInitialAddOns(new Modifiers($addOns));
 
-        return $subscription->setDiscounts(new Modifiers($discounts));
+        $subscription->setDiscounts(new Modifiers($discounts));
+
+        return $subscription->setInitialDiscounts(new Modifiers($discounts));
     }
 
     protected function getStatusFromResult(Braintree\Subscription $result): Status

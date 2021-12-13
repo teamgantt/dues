@@ -882,4 +882,44 @@ trait Subscription
         $this->assertEquals(8, $usersAddOn->getQuantity());
         $this->assertEquals(1, $salesTaxAddOn->getQuantity());
     }
+
+    /**
+     * @group integration
+     * @dataProvider customerProvider
+     */
+    public function testChangingNonDefaultAddonPrice(callable $customerFactory)
+    {
+        $originalPrice = 27.06;
+        $newPrice = 2.06;
+
+        $customer = $customerFactory($this->dues);
+
+        // Create initial subscription
+        $plan = $this->dues->findPlanById('401m');
+        $baseSubscription = (new SubscriptionBuilder())
+            ->withCustomer($customer)
+            ->withPlan($plan)
+            ->withAddOn(new AddOn('401m-u', 8))
+            ->withAddOn(new AddOn('sales_tax', 1, new Price($originalPrice)))
+            ->build();
+
+        $baseSubscription = $this->dues->createSubscription($baseSubscription);
+        $customer = $baseSubscription->getCustomer();
+        $customerId = $customer->getId();
+
+        $salesTaxAddOn = Arr::filter($baseSubscription->getAddOns(), fn ($addOn) => 'sales_tax' === $addOn->getId())[0];
+        $this->assertEquals($originalPrice, $salesTaxAddOn->getPrice()->getAmount());
+
+        // Load subscription from Braintree
+        $subscriptions = $this->dues->findSubscriptionsByCustomerId($customerId);
+        $originalSubscription = $subscriptions[0];
+
+        // Update sales tax
+        $originalSubscription->addAddOn(new AddOn('sales_tax', 1, new Price($newPrice)));
+
+        $updatedSubscription = $this->dues->updateSubscription($originalSubscription);
+
+        $salesTaxAddOn = Arr::filter($updatedSubscription->getAddOns(), fn ($addOn) => 'sales_tax' === $addOn->getId())[0];
+        $this->assertEquals($newPrice, $salesTaxAddOn->getPrice()->getAmount());
+    }
 }
