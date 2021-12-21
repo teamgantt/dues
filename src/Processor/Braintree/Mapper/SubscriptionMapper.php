@@ -52,7 +52,9 @@ class SubscriptionMapper
             'startDate' => 'firstBillingDate',
         ]);
 
-        $request = Arr::dissoc($request, ['customer', 'daysPastDue']);
+        $request['options'] = ['prorateCharges' => $request['isProrated']];
+
+        $request = Arr::dissoc($request, ['customer', 'daysPastDue', 'isProrated']);
 
         $request = Arr::updateIn($request, [], function (array $r) {
             if (isset($r['paymentMethodToken']['token'])) {
@@ -129,8 +131,11 @@ class SubscriptionMapper
         }
 
         $subscription->setAddOns(new Modifiers($addOns));
+        $subscription->setInitialAddOns(new Modifiers($addOns));
 
-        return $subscription->setDiscounts(new Modifiers($discounts));
+        $subscription->setDiscounts(new Modifiers($discounts));
+
+        return $subscription->setInitialDiscounts(new Modifiers($discounts));
     }
 
     protected function getStatusFromResult(Braintree\Subscription $result): Status

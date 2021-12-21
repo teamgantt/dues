@@ -15,7 +15,7 @@ class TransactionRepository
 
     private Gateway $braintree;
 
-    const DATE_FORMAT = 'm/d/Y H:i';
+    public const DATE_FORMAT = 'm/d/Y H:i';
 
     public function __construct(Gateway $braintree, TransactionMapper $mapper)
     {

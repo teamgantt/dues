@@ -65,6 +65,9 @@ use Spatie\Enum\Enum;
  */
 class State extends Enum
 {
+    /**
+     * @return array<string, string>
+     */
     protected static function values(): array
     {
         return [
@@ -128,6 +131,9 @@ class State extends Enum
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
     protected static function labels(): array
     {
         return [

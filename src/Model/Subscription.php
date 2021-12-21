@@ -35,11 +35,17 @@ class Subscription extends Entity implements Arrayable
 
     protected ?Money $balance = null;
 
+    protected Modifiers $initialAddOns;
+
     protected Modifiers $addOns;
+
+    protected Modifiers $initialDiscounts;
 
     protected Modifiers $discounts;
 
     protected ?Money $nextBillingPeriodAmount;
+
+    protected bool $isProrated = true;
 
     /**
      * @var StatusHistory[]
@@ -66,18 +72,23 @@ class Subscription extends Entity implements Arrayable
         $price = $this->getPrice();
         $payment = $this->getPaymentMethod();
 
-        return array_filter([
-            'id' => $this->getId(),
-            'startDate' => $this->getStartDate(),
-            'price' => empty($price) ? null : $price->toArray(),
-            'status' => $this->getStatus(),
-            'statusHistory' => $this->getStatusHistory(),
-            'daysPastDue' => $this->getDaysPastDue(),
-            'customer' => $this->getCustomer()->toArray(),
-            'payment' => empty($payment) ? null : $payment->toArray(),
-            'plan' => $this->plan->toArray(),
-            'nextBillingPeriodAmount' => $this->getNextBillingPeriodAmount(),
-        ]);
+        return array_merge(
+            array_filter([
+                'id' => $this->getId(),
+                'startDate' => $this->getStartDate(),
+                'price' => empty($price) ? null : $price->toArray(),
+                'status' => $this->getStatus(),
+                'statusHistory' => $this->getStatusHistory(),
+                'daysPastDue' => $this->getDaysPastDue(),
+                'customer' => $this->getCustomer()->toArray(),
+                'payment' => empty($payment) ? null : $payment->toArray(),
+                'plan' => $this->plan->toArray(),
+                'nextBillingPeriodAmount' => $this->getNextBillingPeriodAmount(),
+            ]),
+            [
+                'isProrated' => $this->isProrated(),
+            ]
+        );
     }
 
     /**
@@ -173,13 +184,25 @@ class Subscription extends Entity implements Arrayable
     }
 
     /**
+     * Returns Discounts as they were when the Subscription was fetched from the Processor.
+     *
+     * @return Modifier[]
+     */
+    public function getInitialDiscounts(): array
+    {
+        if (!isset($this->initialDiscounts)) {
+            return [];
+        }
+
+        return $this->toModifierArray($this->initialDiscounts);
+    }
+
+    /**
      * @return Modifier[]
      */
     public function getDiscounts(): array
     {
-        return $this->discounts
-            ->filter(fn (Operation $op) => !$op->getType()->equals(OperationType::remove()))
-            ->toModifierArray();
+        return $this->toModifierArray($this->discounts);
     }
 
     /**
@@ -188,6 +211,16 @@ class Subscription extends Entity implements Arrayable
     public function setDiscounts(Modifiers $discounts): self
     {
         $this->discounts = $discounts;
+
+        return $this;
+    }
+
+    /**
+     * @return Subscription
+     */
+    public function setInitialDiscounts(Modifiers $discounts): self
+    {
+        $this->initialDiscounts = $discounts;
 
         return $this;
     }
@@ -225,9 +258,21 @@ class Subscription extends Entity implements Arrayable
      */
     public function getAddOns(): array
     {
-        return $this->addOns
-            ->filter(fn (Operation $op) => !$op->getType()->equals(OperationType::remove()))
-            ->toModifierArray();
+        return $this->toModifierArray($this->addOns);
+    }
+
+    /**
+     * Returns AddOns as they were when the Subscription was fetched from the Processor.
+     *
+     * @return Modifier[]
+     */
+    public function getInitialAddOns(): array
+    {
+        if (!isset($this->initialAddOns)) {
+            return [];
+        }
+
+        return $this->toModifierArray($this->initialAddOns);
     }
 
     /**
@@ -236,6 +281,16 @@ class Subscription extends Entity implements Arrayable
     public function setAddOns(Modifiers $addOns): self
     {
         $this->addOns = $addOns;
+
+        return $this;
+    }
+
+    /**
+     * @return Subscription
+     */
+    public function setInitialAddOns(Modifiers $addOns): self
+    {
+        $this->initialAddOns = $addOns;
 
         return $this;
     }
@@ -506,5 +561,27 @@ class Subscription extends Entity implements Arrayable
     private function setPriceFromPlan(Plan $plan): void
     {
         $plan->getPrice()->applyToSubscription($this);
+    }
+
+    public function setIsProrated(bool $isProrated): self
+    {
+        $this->isProrated = $isProrated;
+
+        return $this;
+    }
+
+    public function isProrated(): bool
+    {
+        return $this->isProrated;
+    }
+
+    /**
+     * @return Modifier[]
+     */
+    private function toModifierArray(Modifiers $modifiers): array
+    {
+        return $modifiers
+            ->filter(fn (Operation $op) => !$op->getType()->equals(OperationType::remove()))
+            ->toModifierArray();
     }
 }

@@ -2,7 +2,7 @@
 
 namespace TeamGantt\Dues\Processor\Braintree\Mapper;
 
-use Braintree;
+use Braintree\AddOn as BraintreeAddOn;
 use TeamGantt\Dues\Model\Modifier\AddOn;
 use TeamGantt\Dues\Model\Modifier\AddOnBuilder;
 
@@ -17,7 +17,7 @@ class AddOnMapper
         $this->builder = new AddOnBuilder();
     }
 
-    public function fromResult(Braintree\AddOn $result): AddOn
+    public function fromResult(BraintreeAddOn $result): AddOn
     {
         $this->fromGenericResult($this->builder, $result);
 
@@ -25,7 +25,7 @@ class AddOnMapper
     }
 
     /**
-     * @param Braintree\AddOn[] $results
+     * @param BraintreeAddOn[] $results
      *
      * @return AddOn[]
      */

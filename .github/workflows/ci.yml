@@ -1,0 +1,44 @@
+name: CI
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            vendor
+            /tmp/composer-cache
+          key: ${{ runner.OS }}-build-${{ hashFiles('**/composer.lock') }}
+
+      - name: Install dependencies
+        uses: php-actions/composer@v6
+
+      - name: Run lint
+        uses: php-actions/composer@v6
+        with:
+          php_version: 7.4
+          command: check
+
+      - name: Run static analysis
+        uses: php-actions/composer@v6
+        with:
+          php_version: 7.4
+          command: analyse
+
+      - name: Run integration tests
+        uses: php-actions/composer@v6
+        env:
+          BRAINTREE_ENVIRONMENT: ${{ secrets.BRAINTREE_ENVIRONMENT }}
+          BRAINTREE_MERCHANT_ID: ${{ secrets.BRAINTREE_MERCHANT_ID }}
+          BRAINTREE_PUBLIC_KEY: ${{ secrets.BRAINTREE_PUBLIC_KEY }}
+          BRAINTREE_PRIVATE_KEY: ${{ secrets.BRAINTREE_PRIVATE_KEY }}
+        with:
+          php_version: 7.4
+          command: test

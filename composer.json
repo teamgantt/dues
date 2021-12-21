@@ -23,8 +23,8 @@
         "spatie/enum": "^3.5"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^2.16",
-        "phpstan/phpstan": "^0.12.56",
+        "friendsofphp/php-cs-fixer": "^3.4.0",
+        "phpstan/phpstan": "^1.2.0",
         "phpunit/phpunit": "^9.4",
         "vlucas/phpdotenv": "^5.2"
     },
@@ -42,10 +42,12 @@
         "test": "vendor/bin/phpunit tests",
         "test:unit": "vendor/bin/phpunit tests --exclude-group integration",
         "test:integration": "vendor/bin/phpunit tests --group integration",
-        "fix": "vendor/bin/php-cs-fixer fix src tests --config .php_cs",
+        "fix": "vendor/bin/php-cs-fixer fix src tests --config .php-cs-fixer.php",
+        "check": "vendor/bin/php-cs-fixer fix src tests --dry-run --show-progress=none --verbose --diff --config .php-cs-fixer.php",
         "analyse": "vendor/bin/phpstan analyse"
     },
     "config": {
+        "process-timeout": 600,
         "sort-packages": true
     }
 }
