@@ -2,5 +2,3 @@ parameters:
 	level: 8
 	paths:
 		- src
-	ignoreErrors:
-		- '#Access to an undefined property Braintree\\Transaction::\$addOns#'
