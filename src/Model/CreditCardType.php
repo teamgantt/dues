@@ -23,6 +23,9 @@ use Spatie\Enum\Enum;
  */
 class CreditCardType extends Enum
 {
+    /**
+     * @return array<string, string>
+     */
     protected static function labels(): array
     {
         return [

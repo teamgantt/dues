@@ -9,7 +9,7 @@ use TeamGantt\Dues\Model\Subscription\Modifier\OperationType;
 class Modifiers
 {
     /**
-     * @var Array<string, Operation>
+     * @var array<string, Operation>
      */
     private array $operations = [];
 
@@ -57,7 +57,7 @@ class Modifiers
     }
 
     /**
-     * @return Array<string, Operation>
+     * @return array<string, Operation>
      */
     public function getOperations(): array
     {

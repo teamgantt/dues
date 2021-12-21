@@ -233,6 +233,6 @@ class Braintree implements SubscriptionGateway
     public function setDispatcher(Dispatcher $events): void
     {
         $this->events = $events;
-        $this->subscriptions->setDispatcher($events);
+        $this->subscriptions->setDispatcher($this->events);
     }
 }

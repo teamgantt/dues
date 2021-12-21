@@ -11,13 +11,12 @@ use TeamGantt\Dues\Model\Subscription;
 class Dispatcher implements EventListenerContainer
 {
     /**
-     * @var SplObjectStorage<EventListener>
+     * @var SplObjectStorage<EventListener, EventListener>
      */
     protected SplObjectStorage $listeners;
 
     public function __construct()
     {
-        /* @phpstan-ignore-next-line */
         $this->listeners = new SplObjectStorage();
     }
 

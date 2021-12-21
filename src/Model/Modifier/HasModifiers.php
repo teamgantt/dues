@@ -5,12 +5,12 @@ namespace TeamGantt\Dues\Model\Modifier;
 trait HasModifiers
 {
     /**
-     * @var Array<string, AddOn>
+     * @var array<string, AddOn>
      */
     protected $addOns = [];
 
     /**
-     * @var Array<string, Discount>
+     * @var array<string, Discount>
      */
     protected $discounts = [];
 
@@ -36,7 +36,7 @@ trait HasModifiers
     }
 
     /**
-     * @return Array<string, AddOn>
+     * @return array<string, AddOn>
      */
     public function getAddOns(): array
     {
@@ -70,7 +70,7 @@ trait HasModifiers
     }
 
     /**
-     * @return Array<string, Discount>
+     * @return array<string, Discount>
      */
     public function getDiscounts(): array
     {

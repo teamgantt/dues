@@ -57,7 +57,7 @@ class ModifierMapper
                     $otherUserSuppliedModifiers = Arr::filter($modifiers, fn ($modifier) => $modifier['inheritedFromId'] !== $default['inheritedFromId']);
                     $defaultModifierWithProvidedUpdates = [array_merge(
                         $default,
-                        ...Arr::filter($modifiers, fn ($modifier) => $modifier['inheritedFromId'] === $default['inheritedFromId']) ?? []
+                        ...Arr::filter($modifiers, fn ($modifier) => $modifier['inheritedFromId'] === $default['inheritedFromId'])
                     )];
 
                     return array_merge($otherUserSuppliedModifiers, $defaultModifierWithProvidedUpdates);
