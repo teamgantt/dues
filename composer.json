@@ -47,6 +47,7 @@
         "analyse": "vendor/bin/phpstan analyse"
     },
     "config": {
+        "process-timeout": 600,
         "sort-packages": true
     }
 }
