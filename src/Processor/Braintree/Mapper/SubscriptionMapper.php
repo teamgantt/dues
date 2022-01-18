@@ -109,6 +109,9 @@ class SubscriptionMapper
         $discounts = $this->discountMapper->fromResults($result->discounts);
         $statusHistory = $this->statusHistoryMapper->fromResults($result->statusHistory);
 
+        $billingPeriodStart = $result->billingPeriodStartDate;
+        $billingPeriodEnd = $result->billingPeriodEndDate;
+
         $subscription = $builder
             ->withId($result->id)
             ->withStartDate($result->firstBillingDate)
@@ -118,6 +121,7 @@ class SubscriptionMapper
             ->withStatusHistory($statusHistory)
             ->withDaysPastDue($daysPastDue)
             ->withPaymentMethod($paymentMethod)
+            ->withBillingPeriod($billingPeriodStart, $billingPeriodEnd)
             ->withPlan($plan);
 
         if (isset($result->nextBillingPeriodAmount)) {

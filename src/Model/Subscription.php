@@ -4,19 +4,23 @@ namespace TeamGantt\Dues\Model;
 
 use DateTime;
 use TeamGantt\Dues\Contracts\Arrayable;
+use TeamGantt\Dues\Contracts\Valuable;
 use TeamGantt\Dues\Model\Modifier\AddOn;
 use TeamGantt\Dues\Model\Modifier\Discount;
 use TeamGantt\Dues\Model\Modifier\Modifier;
 use TeamGantt\Dues\Model\Plan\NullPlan;
 use TeamGantt\Dues\Model\Price\NullPrice;
+use TeamGantt\Dues\Model\Subscription\BillingPeriod;
 use TeamGantt\Dues\Model\Subscription\Modifier\Operation;
 use TeamGantt\Dues\Model\Subscription\Modifier\OperationType;
 use TeamGantt\Dues\Model\Subscription\Modifiers;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Subscription\StatusHistory;
 
-class Subscription extends Entity implements Arrayable
+class Subscription extends Entity implements Arrayable, Valuable
 {
+    protected ?BillingPeriod $billingPeriod = null;
+
     protected ?DateTime $startDate = null;
 
     protected ?Price $price = null;
@@ -92,6 +96,21 @@ class Subscription extends Entity implements Arrayable
     }
 
     /**
+     * @return Subscription
+     */
+    public function setBillingPeriod(BillingPeriod $period): self
+    {
+        $this->billingPeriod = $period;
+
+        return $this;
+    }
+
+    public function getBillingPeriod(): ?BillingPeriod
+    {
+        return $this->billingPeriod;
+    }
+
+    /**
      * Merge another Subscription into this one. Preserves the entity ID.
      *
      * @internal
@@ -153,6 +172,26 @@ class Subscription extends Entity implements Arrayable
     public function getBalance(): ?Money
     {
         return $this->balance;
+    }
+
+    public function getValue(): Money
+    {
+        $price = $this->price;
+
+        if (null === $price) {
+            return new Money(0.0);
+        }
+
+        $priceReducer = function (float $value, Modifier $mod) {
+            return $value + $mod->getValue()->getAmount();
+        };
+
+        $priceValue = $price->getAmount();
+
+        $addOnValue = array_reduce($this->addOns->toModifierArray(), $priceReducer, 0.0);
+        $discountValue = array_reduce($this->discounts->toModifierArray(), $priceReducer, 0.0);
+
+        return new Money($priceValue + $addOnValue - $discountValue);
     }
 
     /**
