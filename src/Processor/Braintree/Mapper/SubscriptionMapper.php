@@ -136,10 +136,30 @@ class SubscriptionMapper
 
         $subscription->setAddOns(new Modifiers($addOns));
         $subscription->setInitialAddOns(new Modifiers($addOns));
-
         $subscription->setDiscounts(new Modifiers($discounts));
+        $subscription->setInitialDiscounts(new Modifiers($discounts));
 
-        return $subscription->setInitialDiscounts(new Modifiers($discounts));
+        return $this->setRemainingValue($subscription);
+    }
+
+    protected function setRemainingValue(Subscription $sub): Subscription
+    {
+        $billingPeriod = $sub->getBillingPeriod();
+
+        if (null == $billingPeriod) {
+            return $sub;
+        }
+
+        $cost = $sub->getValue()->getAmount();
+        $cycle = $billingPeriod->getBillingCycle();
+        $remainingCycle = $billingPeriod->getRemainingBillingCycle();
+
+        $costPerDay = $cost / $cycle;
+        $remainingValue = $costPerDay * $remainingCycle;
+
+        $remainingValue = new Money(round($remainingValue, 2));
+
+        return $sub->setRemainingValue($remainingValue);
     }
 
     protected function getStatusFromResult(Braintree\Subscription $result): Status

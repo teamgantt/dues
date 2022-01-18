@@ -25,4 +25,16 @@ class BillingPeriod
     {
         return $this->startDate;
     }
+
+    public function getBillingCycle(): int
+    {
+        return $this->getStartDate()->diff($this->getEndDate())->d;
+    }
+
+    public function getRemainingBillingCycle(): int
+    {
+        $today = new DateTime('UTC');
+
+        return $today->diff($this->getEndDate())->d;
+    }
 }

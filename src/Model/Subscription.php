@@ -61,6 +61,8 @@ class Subscription extends Entity implements Arrayable, Valuable
      */
     protected array $transactions = [];
 
+    protected Money $remainingValue;
+
     public function __construct(string $id = '')
     {
         parent::__construct($id);
@@ -69,6 +71,7 @@ class Subscription extends Entity implements Arrayable, Valuable
         $this->addOns = new Modifiers();
         $this->discounts = new Modifiers();
         $this->plan = new NullPlan();
+        $this->remainingValue = new Money(0.0);
     }
 
     public function toArray(): array
@@ -93,6 +96,21 @@ class Subscription extends Entity implements Arrayable, Valuable
                 'isProrated' => $this->isProrated(),
             ]
         );
+    }
+
+    public function getRemainingValue(): Money
+    {
+        return $this->remainingValue;
+    }
+
+    /**
+     * @return Subscription
+     */
+    public function setRemainingValue(Money $value): self
+    {
+        $this->remainingValue = $value;
+
+        return $this;
     }
 
     /**

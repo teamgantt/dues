@@ -3,8 +3,7 @@
 namespace TeamGantt\Dues\Processor\Braintree\Subscription\Update;
 
 use TeamGantt\Dues\Exception\IllegalStateException;
-use TeamGantt\Dues\Exception\SubscriptionNotUpdatedException;
-use TeamGantt\Dues\Exception\UnknownException;
+use TeamGantt\Dues\Model\Modifier\AddOn;
 use TeamGantt\Dues\Model\Modifier\Discount;
 use TeamGantt\Dues\Model\Modifier\Modifier;
 use TeamGantt\Dues\Model\Price;
@@ -17,20 +16,21 @@ class ChangeBillingCycleStrategy extends BaseUpdateStrategy
 {
     public function update(Subscription $subscription): ?Subscription
     {
-        // Zero out and cancel the subscription in order to get a balance
-        $canceled = $this->cancel($subscription);
-
         // Make a new subscription to replace old one
-        $newSubscription = $this->createReplacementSubscription($subscription, $canceled);
+        $newSubscription = $this->createReplacementSubscription($subscription);
+        $newSubscription = $this->subscriptions->add($newSubscription);
+
+        // Cancel original subscription
+        $canceled = $this->cancel($subscription);
 
         // Update the state of the given subscription to reflect canceled state
         $subscription->merge($canceled);
 
-        // Save and return the new replacement subscription
-        return $this->subscriptions->add($newSubscription);
+        // Return the new replacement subscription
+        return $newSubscription;
     }
 
-    private function createReplacementSubscription(Subscription $original, Subscription $canceled): Subscription
+    private function createReplacementSubscription(Subscription $original): Subscription
     {
         // Purchase new subscription, applying balance from previous subscription.
         $previousPlan = $original->getPreviousPlan();
@@ -48,10 +48,14 @@ class ChangeBillingCycleStrategy extends BaseUpdateStrategy
                 ->withDiscounts($nextDiscounts)
                 ->withAddOns($nextAddOns);
 
-        if ($balance = $canceled->getBalance()) {
-            $balanceDiscount = new Discount('balance', 1, new Price(abs($balance->getAmount())));
+        if ($modifier = $this->getNewPurchaseModifier($original)) {
+            if ($modifier instanceof Discount) {
+                $builder->withDiscount($modifier);
+            }
 
-            $builder->withDiscount($balanceDiscount);
+            if ($modifier instanceof AddOn) {
+                $builder->withAddOn($modifier);
+            }
         }
 
         if (!empty($original->getPrice())) {
@@ -64,10 +68,34 @@ class ChangeBillingCycleStrategy extends BaseUpdateStrategy
         $addOns = $newSubscription->getAddOnsImpl();
 
         return $newSubscription
-            ->merge($canceled)
+            ->merge($original)
             ->setCustomer($original->getCustomer())
             ->setAddOns($addOns)
             ->setDiscounts($discounts);
+    }
+
+    private function getNewPurchaseModifier(Subscription $sub): ?Modifier
+    {
+        $balance = $sub->getBalance();
+        $modValue = $sub->getRemainingValue()->getAmount();
+
+        if (null !== $balance && 0.0 !== $balance->getAmount()) {
+            if ($balance->getAmount() < 0.0) {
+                $modValue += abs($balance->getAmount());
+            } elseif ($balance->getAmount() > 0.0) {
+                $modValue -= abs($balance->getAmount());
+            }
+        }
+
+        if (0.0 === $modValue) {
+            return null;
+        }
+
+        if ($modValue >= 0.0) {
+            return new Discount('balance', 1, new Price($modValue));
+        }
+
+        return new AddOn('overdue', 1, new Price(abs($modValue)));
     }
 
     /**
@@ -93,23 +121,11 @@ class ChangeBillingCycleStrategy extends BaseUpdateStrategy
         }
 
         // Close out the subscription, removing any price information
-        $clone = (new Subscription($original->getId()))->merge($original);
-        $clone->setPlan($previousPlan);
-        $subscription = $clone->closeOut();
-        $result = $this->doBraintreeUpdate($subscription);
-
-        if (!$result->success) {
-            $message = isset($result->message) ? $result->message : 'An unknown update error occurred';
-            throw new SubscriptionNotUpdatedException($message);
-        }
-        $updated = $this->subscriptions->find($subscription->getId());
-
-        if (null === $updated) {
-            throw new UnknownException('Failed to fetch updated subscription');
-        }
+        $subscription = (new Subscription($original->getId()))->merge($original);
+        $subscription->setPlan($previousPlan);
 
         // Cancel subscription
-        return $this->subscriptions->update($updated->cancel())
+        return $this->subscriptions->update($subscription->cancel())
             ->closeOut()
             ->setPrice(new NullPrice());
     }
