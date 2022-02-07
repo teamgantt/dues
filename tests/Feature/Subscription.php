@@ -254,8 +254,8 @@ trait Subscription
         $balance = $updated->getBalance()->getAmount();
         $price = $updated->getPrice()->getAmount();
         $addOnPrice = $updated->getAddOns()[0]->getPrice()->getAmount();
-        $rollover = -1.0 * $subscription->getRemainingValue()->getAmount();
-        $this->assertEquals($rollover + $price + $addOnPrice, $balance);
+        $rollover = $subscription->getRemainingValue()->getAmount();
+        $this->assertEquals($price + $addOnPrice - $rollover, $balance);
     }
 
     /**

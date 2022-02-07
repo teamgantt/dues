@@ -146,7 +146,7 @@ class SubscriptionMapper
     {
         $billingPeriod = $sub->getBillingPeriod();
 
-        if (null == $billingPeriod) {
+        if (null === $billingPeriod) {
             return $sub;
         }
 
@@ -155,11 +155,9 @@ class SubscriptionMapper
         $remainingCycle = $billingPeriod->getRemainingBillingCycle();
 
         $costPerDay = $cost / $cycle;
-        $remainingValue = $costPerDay * $remainingCycle;
+        $remainingValue = round($costPerDay * $remainingCycle, 2);
 
-        $remainingValue = new Money(round($remainingValue, 2));
-
-        return $sub->setRemainingValue($remainingValue);
+        return $sub->setRemainingValue(new Money($remainingValue));
     }
 
     protected function getStatusFromResult(Braintree\Subscription $result): Status

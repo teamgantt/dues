@@ -120,7 +120,6 @@ class ChangeBillingCycleStrategy extends BaseUpdateStrategy
             throw new IllegalStateException('Previous plan should not be null while changing billing cycles.');
         }
 
-        // Close out the subscription, removing any price information
         $subscription = (new Subscription($original->getId()))->merge($original);
         $subscription->setPlan($previousPlan);
 
