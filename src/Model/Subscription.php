@@ -197,7 +197,7 @@ class Subscription extends Entity implements Arrayable, Valuable
         $price = $this->price;
 
         if (null === $price) {
-            return new Money(0.0);
+            $price = new Money(0.0);
         }
 
         $priceReducer = function (float $value, Modifier $mod) {

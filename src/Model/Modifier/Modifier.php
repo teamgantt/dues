@@ -36,9 +36,7 @@ abstract class Modifier extends Entity implements Arrayable, Valuable
 
     public function getValue(): Money
     {
-        $price = $this->price;
-
-        if (null == $price) {
+        if (null === $this->quantity) {
             return new Money(0.0);
         }
 
