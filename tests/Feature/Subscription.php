@@ -254,8 +254,8 @@ trait Subscription
         $balance = $updated->getBalance()->getAmount();
         $price = $updated->getPrice()->getAmount();
         $addOnPrice = $updated->getAddOns()[0]->getPrice()->getAmount();
-        $rollover = $subscription->getBalance()->getAmount();
-        $this->assertEquals($rollover + $price + $addOnPrice, $balance);
+        $rollover = $subscription->getRemainingValue()->getAmount();
+        $this->assertEquals($price + $addOnPrice - $rollover, $balance);
     }
 
     /**
@@ -552,6 +552,7 @@ trait Subscription
         $this->assertEquals(Status::active(), $subscription->getStatus());
         $this->assertNotEmpty($subscription->getTransactions());
         $this->assertEquals(0, $subscription->getDaysPastDue());
+        $this->assertNotNull($subscription->getBillingPeriod());
 
         $this->assertNotEmpty($subscription->getStatusHistory());
         $this->assertEquals(Status::active(), $subscription->getStatusHistory()[0]->getStatus());
@@ -921,5 +922,62 @@ trait Subscription
 
         $salesTaxAddOn = Arr::filter($updatedSubscription->getAddOns(), fn ($addOn) => 'sales_tax' === $addOn->getId())[0];
         $this->assertEquals($newPrice, $salesTaxAddOn->getPrice()->getAmount());
+    }
+
+    public function testSubscriptionGetValueIsZeroWithoutPrice()
+    {
+        $subscription = new ModelSubscription();
+
+        $value = $subscription->getValue();
+
+        $this->assertEquals(0.0, $value->getAmount());
+    }
+
+    public function testSubscriptionGetValueWithPrice()
+    {
+        $subscription = new ModelSubscription();
+        $price = new Price(3.50);
+        $subscription->setPrice($price);
+
+        $value = $subscription->getValue();
+
+        $this->assertEquals(3.50, $value->getAmount());
+    }
+
+    public function testSubscriptionGetValueWithAddOns()
+    {
+        $subscription = new ModelSubscription();
+        $price = new Price(3.50);
+        $subscription->setPrice($price);
+        $subscription->addAddOn(new AddOn('test', 2, new Price(2.00)));
+
+        $value = $subscription->getValue();
+
+        $this->assertEquals(7.50, $value->getAmount());
+    }
+
+    public function testSubscriptionGetValueWithDiscounts()
+    {
+        $subscription = new ModelSubscription();
+        $price = new Price(3.50);
+        $subscription->setPrice($price);
+        $subscription->addDiscount(new Discount('test', 2, new Price(1.00)));
+
+        $value = $subscription->getValue();
+
+        $this->assertEquals(1.50, $value->getAmount());
+    }
+
+    public function testSubscriptionGetValueWithAddOnsAndDiscounts()
+    {
+        $subscription = new ModelSubscription();
+        $price = new Price(3.50);
+        $subscription->setPrice($price);
+        $subscription->addDiscount(new Discount('test', 2, new Price(1.00)));
+        $subscription->addAddOn(new AddOn('test-2', 3, new Price(2.00)));
+
+        $value = $subscription->getValue();
+
+        $this->assertEquals(7.50, $value->getAmount());
     }
 }

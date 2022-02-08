@@ -3,11 +3,13 @@
 namespace TeamGantt\Dues\Model\Modifier;
 
 use TeamGantt\Dues\Contracts\Arrayable;
+use TeamGantt\Dues\Contracts\Valuable;
 use TeamGantt\Dues\Model\Entity;
+use TeamGantt\Dues\Model\Money;
 use TeamGantt\Dues\Model\Price;
 use TeamGantt\Dues\Model\Price\NullPrice;
 
-abstract class Modifier extends Entity implements Arrayable
+abstract class Modifier extends Entity implements Arrayable, Valuable
 {
     protected Price $price;
 
@@ -30,6 +32,15 @@ abstract class Modifier extends Entity implements Arrayable
         $this->price = $price;
 
         return $this;
+    }
+
+    public function getValue(): Money
+    {
+        if (null === $this->quantity) {
+            return new Money(0.0);
+        }
+
+        return new Money($this->price->getAmount() * $this->quantity);
     }
 
     public function getQuantity(): ?int

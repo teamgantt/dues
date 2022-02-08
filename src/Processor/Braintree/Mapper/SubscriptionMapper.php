@@ -109,6 +109,9 @@ class SubscriptionMapper
         $discounts = $this->discountMapper->fromResults($result->discounts);
         $statusHistory = $this->statusHistoryMapper->fromResults($result->statusHistory);
 
+        $billingPeriodStart = $result->billingPeriodStartDate;
+        $billingPeriodEnd = $result->billingPeriodEndDate;
+
         $subscription = $builder
             ->withId($result->id)
             ->withStartDate($result->firstBillingDate)
@@ -118,6 +121,7 @@ class SubscriptionMapper
             ->withStatusHistory($statusHistory)
             ->withDaysPastDue($daysPastDue)
             ->withPaymentMethod($paymentMethod)
+            ->withBillingPeriod($billingPeriodStart, $billingPeriodEnd)
             ->withPlan($plan);
 
         if (isset($result->nextBillingPeriodAmount)) {
@@ -132,10 +136,28 @@ class SubscriptionMapper
 
         $subscription->setAddOns(new Modifiers($addOns));
         $subscription->setInitialAddOns(new Modifiers($addOns));
-
         $subscription->setDiscounts(new Modifiers($discounts));
+        $subscription->setInitialDiscounts(new Modifiers($discounts));
 
-        return $subscription->setInitialDiscounts(new Modifiers($discounts));
+        return $this->setRemainingValue($subscription);
+    }
+
+    protected function setRemainingValue(Subscription $sub): Subscription
+    {
+        $billingPeriod = $sub->getBillingPeriod();
+
+        if (null === $billingPeriod) {
+            return $sub;
+        }
+
+        $cost = $sub->getValue()->getAmount();
+        $cycle = $billingPeriod->getBillingCycle();
+        $remainingCycle = $billingPeriod->getRemainingBillingCycle();
+
+        $costPerDay = $cost / $cycle;
+        $remainingValue = round($costPerDay * $remainingCycle, 2);
+
+        return $sub->setRemainingValue(new Money($remainingValue));
     }
 
     protected function getStatusFromResult(Braintree\Subscription $result): Status

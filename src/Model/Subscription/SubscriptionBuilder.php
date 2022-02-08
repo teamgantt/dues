@@ -91,6 +91,18 @@ class SubscriptionBuilder extends Builder
     }
 
     /**
+     * @return SubscriptionBuilder
+     */
+    public function withBillingPeriod(?DateTime $start, ?DateTime $end): self
+    {
+        if (isset($start, $end)) {
+            return $this->with('billingPeriod', new BillingPeriod($start, $end));
+        }
+
+        return $this;
+    }
+
+    /**
      * @param Modifier[] $addOns
      *
      * @return SubscriptionBuilder
@@ -178,6 +190,10 @@ class SubscriptionBuilder extends Builder
 
         if (isset($this->data['nextBillingPeriodAmount'])) {
             $subscription->setNextBillingPeriodAmount($this->data['nextBillingPeriodAmount']);
+        }
+
+        if (isset($this->data['billingPeriod'])) {
+            $subscription->setBillingPeriod($this->data['billingPeriod']);
         }
 
         $addOns = $this->data['addOns'] ?? [];
