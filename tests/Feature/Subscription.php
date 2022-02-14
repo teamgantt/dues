@@ -749,6 +749,7 @@ trait Subscription
         $this->assertCount(2, $subscriptions);
         $this->assertEquals(Status::pending(), $subscriptions[0]->getStatus());
         $this->assertEquals(Status::active(), $subscriptions[1]->getStatus());
+        $this->assertNotNull($customer->getDefaultPaymentMethod()->getExpirationDate());
     }
 
     /**

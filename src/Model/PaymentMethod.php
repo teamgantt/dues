@@ -2,6 +2,7 @@
 
 namespace TeamGantt\Dues\Model;
 
+use DateTimeImmutable;
 use TeamGantt\Dues\Contracts\Arrayable;
 
 abstract class PaymentMethod implements Arrayable
@@ -11,6 +12,8 @@ abstract class PaymentMethod implements Arrayable
     protected bool $isDefault = false;
 
     protected ?Address $billingAddress = null;
+
+    protected ?DateTimeImmutable $expirationDate = null;
 
     /**
      * @return PaymentMethod
@@ -66,6 +69,18 @@ abstract class PaymentMethod implements Arrayable
         return [
             'billingAddress' => $this->billingAddress->toArray(),
         ];
+    }
+
+    public function getExpirationDate(): ?DateTimeImmutable
+    {
+        return $this->expirationDate;
+    }
+
+    public function setExpirationDate(DateTimeImmutable $expirationDate): self
+    {
+        $this->expirationDate = $expirationDate;
+
+        return $this;
     }
 
     abstract public function isNew(): bool;
