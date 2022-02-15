@@ -52,6 +52,10 @@ class TransactionRepository
             $criteria[] = TransactionSearch::createdAt()->lessThanOrEqualTo($end->format(self::DATE_FORMAT));
         }
 
+        if (null !== $start && null !== $end) {
+            $criteria = [TransactionSearch::customerId()->is($customerId), TransactionSearch::createdAt()->between($start->format(self::DATE_FORMAT), $end->format(self::DATE_FORMAT))];
+        }
+
         $collection = $this->braintree->transaction()->search($criteria);
 
         $mapped = [];

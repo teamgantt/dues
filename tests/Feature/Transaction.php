@@ -2,6 +2,7 @@
 
 namespace TeamGantt\Dues\Tests\Feature;
 
+use DateTime;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Tests\ProvidesTestData;
 
@@ -40,6 +41,50 @@ trait Transaction
         $sample = $transactions[0];
 
         $this->assertTrue(!$sample->isNew());
+    }
+
+    /**
+     * @group integration
+     * @dataProvider subscriptionProvider
+     *
+     * @return void
+     */
+    public function testFindTransactionsByCustomerIdAndStartDateAndEndDate(callable $subscriptionFactory)
+    {
+        $subscription = $subscriptionFactory($this->dues, null, fn (Subscription $s) => $s->beginImmediately());
+        $customer = $subscription->getCustomer();
+
+        $subscriptionYear = $subscription->getStartDate()->format('Y');
+        $nextYear = $subscriptionYear + 1;
+        $startDate = new DateTime($subscriptionYear.'-01-01');
+        $endDate = new DateTime($nextYear.'-01-01');
+
+        $transactions = $this->dues->findTransactionsByCustomerId($customer->getId(), $startDate, $endDate);
+        $sample = $transactions[0];
+
+        $this->assertTrue(!$sample->isNew());
+    }
+
+    /**
+     * @group integration
+     * @dataProvider subscriptionProvider
+     *
+     * @return void
+     */
+    public function testFindTransactionsByCustomerIdAndStartDateAndEndDateWithNoResults(callable $subscriptionFactory)
+    {
+        $subscription = $subscriptionFactory($this->dues, null, fn (Subscription $s) => $s->beginImmediately());
+        $customer = $subscription->getCustomer();
+
+        $subscriptionYear = $subscription->getStartDate()->format('Y');
+        $beginningOfYearAfterSubscription = $subscriptionYear + 1;
+        $endOfYearAfterSubscription = $beginningOfYearAfterSubscription + 1;
+        $startDate = new DateTime($beginningOfYearAfterSubscription.'-01-01');
+        $endDate = new DateTime($endOfYearAfterSubscription.'-01-01');
+
+        $transactions = $this->dues->findTransactionsByCustomerId($customer->getId(), $startDate, $endDate);
+
+        $this->assertEmpty($transactions);
     }
 
     /**
