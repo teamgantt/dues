@@ -3,6 +3,7 @@
 namespace TeamGantt\Dues\Model\Subscription;
 
 use DateTime;
+use TeamGantt\Dues\Exception\BillingPeriodCycleException;
 
 class BillingPeriod
 {
@@ -32,7 +33,13 @@ class BillingPeriod
      */
     public function getBillingCycle(): int
     {
-        return $this->getStartDate()->diff($this->getEndDate())->d;
+        $days = $this->getStartDate()->diff($this->getEndDate())->days;
+
+        if (false === $days) {
+            throw new BillingPeriodCycleException('Unable to determine the number of days in the billing cycle.');
+        }
+
+        return $days;
     }
 
     /**
@@ -42,7 +49,12 @@ class BillingPeriod
     public function getRemainingBillingCycle(): int
     {
         $today = new DateTime('UTC');
+        $remainingDays = $today->diff($this->getEndDate())->days;
 
-        return $today->diff($this->getEndDate())->d;
+        if (false === $remainingDays) {
+            throw new BillingPeriodCycleException('Unable to determine the number of days remaining in the current billing cycle.');
+        }
+
+        return $remainingDays;
     }
 }
