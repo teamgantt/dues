@@ -264,6 +264,38 @@ trait Subscription
      *
      * @return void
      */
+    public function testUpdateSubscriptionPlanToPlanWithDifferentBillingCycleFromYearly(callable $subscriptionFactory)
+    {
+        $subscription = $subscriptionFactory($this->dues, null, function (ModelSubscription $s) {
+            $s->beginImmediately();
+            $plan = $this->dues->findPlanById('test-plan-c-yearly');
+            $plan->setPrice(new Price(1731.57));
+            $s->setAddOns(new Modifiers());
+
+            return $s->resetPlan($plan);
+        });
+
+        $nextPlan = $this->dues->findPlanById('test-plan-c-monthly');
+        $nextPlan->setPrice(new Price(64.75));
+        $nextSubscription = $subscription->setPlan($nextPlan);
+        $updated = $this->dues->updateSubscription($nextSubscription);
+
+        $this->assertEquals('test-plan-c-monthly', $updated->getPlan()->getId());
+        $this->assertEquals($nextPlan->getPrice()->getAmount(), $updated->getPrice()->getAmount());
+        $this->assertGreaterThan(0, count($updated->getDiscounts()));
+        $this->assertTrue($updated->is(Status::active()));
+        $this->assertTrue($subscription->is(Status::canceled()));
+
+        $rollover = $subscription->getRemainingValue()->getAmount();
+        $this->assertEquals($rollover, 1726.81);
+    }
+
+    /**
+     * @group integration
+     * @dataProvider subscriptionProvider
+     *
+     * @return void
+     */
     public function testUpdateSubscriptionPlanToPlanWithDifferentBillingCycleWhenAddOnNotPreviouslyAssociatedWithPlan(callable $subscriptionFactory)
     {
         $subscription = $subscriptionFactory($this->dues, null, function (ModelSubscription $s) {
