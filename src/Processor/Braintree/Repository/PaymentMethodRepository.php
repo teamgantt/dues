@@ -3,6 +3,7 @@
 namespace TeamGantt\Dues\Processor\Braintree\Repository;
 
 use Braintree\Gateway;
+use Braintree\Result\Error;
 use TeamGantt\Dues\Exception\PaymentMethodNotCreatedException;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\PaymentMethod\Token;
@@ -29,7 +30,7 @@ class PaymentMethodRepository
             ->paymentMethod()
             ->create($request);
 
-        if (!$result->success) {
+        if ($result instanceof Error || !property_exists($result, 'paymentMethod')) {
             throw new PaymentMethodNotCreatedException($result->message);
         }
 

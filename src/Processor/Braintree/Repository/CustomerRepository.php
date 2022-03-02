@@ -127,6 +127,9 @@ class CustomerRepository
 
     public function findByPaymentToken(string $tokenId): ?Customer
     {
+        /**
+         * @var BraintreeCustomer[]
+         */
         $customerResult = $this->braintree->customer()->search([
             CustomerSearch::paymentMethodToken()->is($tokenId),
         ]);

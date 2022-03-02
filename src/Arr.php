@@ -109,12 +109,14 @@ class Arr
             }
 
             if (!$atDepth) {
-                return $up($m[$k]); // keep looking
+                $up($m[$k]); // keep looking
+
+                return;
             }
 
             $m[$k] = $updater($m[$k]);
 
-            return $up($m[$k]);
+            $up($m[$k]);
         };
 
         $up($array);
