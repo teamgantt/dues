@@ -1,0 +1,14 @@
+<?php
+
+namespace Braintree;
+
+class ClientTokenGateway
+{
+    /**
+     * @param mixed $params
+     * @return string client token
+     */
+    public function generate($params)
+    {
+    }
+}

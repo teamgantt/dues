@@ -1,0 +1,11 @@
+<?php
+
+namespace Braintree;
+
+/**
+ * @property string $id
+ * @property float $amount
+ */
+class AddOn
+{
+}

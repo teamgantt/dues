@@ -1,0 +1,14 @@
+<?php
+
+namespace Braintree;
+
+/**
+ * @property string $id
+ * @property float $price
+ * @property array $addOns
+ * @property array $discounts
+ * @property int $billingFrequency
+ */
+class Plan
+{
+}

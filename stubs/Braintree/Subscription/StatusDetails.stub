@@ -1,0 +1,14 @@
+<?php
+
+namespace Braintree\Subscription;
+
+/**
+ * @property \DateTime $timestamp
+ * @property float $balance
+ * @property float $price
+ * @property string $planId
+ * @property string $status
+ */
+class StatusDetails
+{
+}

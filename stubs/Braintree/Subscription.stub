@@ -1,0 +1,23 @@
+<?php
+
+namespace Braintree;
+
+/**
+ * @property int $daysPastDue
+ * @property array $addOns
+ * @property array $discounts
+ * @property \DateTime $billingPeriodStartDate
+ * @property \DateTime $billingPeriodEndDate
+ * @property string $id
+ * @property \DateTime $firstBillingDate
+ * @property array $transactions
+ * @property float $balance
+ * @property float $price
+ * @property string $planId
+ * @property string $status
+ * @property string $paymentMethodToken
+ * @property array $statusHistory
+ */
+class Subscription
+{
+}

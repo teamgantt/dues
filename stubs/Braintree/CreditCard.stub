@@ -1,0 +1,11 @@
+<?php
+
+namespace Braintree;
+
+/**
+ * @property string $last4
+ * @property string $cardType
+ */
+class CreditCard
+{
+}
