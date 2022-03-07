@@ -64,7 +64,7 @@ class Dues implements SubscriptionGateway, EventListenerContainer
     {
         try {
             return $this->traitCreateSubscription($subscription);
-        } catch (SubscriptionNotCreatedException $e) { //rollback any new customers
+        } catch (SubscriptionNotCreatedException $e) { // rollback any new customers
             if ($customer = $e->getCustomer()) {
                 $this->deleteCustomer($customer->getId());
             }

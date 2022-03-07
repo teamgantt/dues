@@ -1,0 +1,21 @@
+<?php
+
+namespace Braintree;
+
+/**
+ * @property string $subscriptionId
+ * @property string $id
+ * @property float $amount
+ * @property \DateTime $createdAt
+ * @property array $addOns
+ * @property array $discounts
+ * @property string $planId
+ * @property string $paymentInstrumentType
+ * @property \Braintree\CreditCard $creditCardDetails
+ * @property \Braintree\Customer $customerDetails
+ * @property string $type
+ * @property string $status
+ */
+class Transaction
+{
+}

@@ -1,0 +1,11 @@
+<?php
+
+namespace Braintree\Result;
+
+/**
+ * @property string $message
+ * @property \Braintree\Error\ErrorCollection $errors
+ */
+class Error
+{
+}

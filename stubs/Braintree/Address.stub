@@ -1,0 +1,11 @@
+<?php
+
+namespace Braintree;
+
+/**
+ * @property string $postalCode
+ * @property string $region
+ */
+class Address
+{
+}

@@ -1,4 +1,17 @@
 parameters:
-	level: 8
-	paths:
-		- src
+  level: 8
+  paths:
+    - src
+  stubFiles:
+    - stubs/Braintree/AddOn.stub
+    - stubs/Braintree/Address.stub
+    - stubs/Braintree/ClientTokenGateway.stub
+    - stubs/Braintree/CreditCard.stub
+    - stubs/Braintree/Customer.stub
+    - stubs/Braintree/Discount.stub
+    - stubs/Braintree/Plan.stub
+    - stubs/Braintree/Result/Error.stub
+    - stubs/Braintree/Result/Successful.stub
+    - stubs/Braintree/Subscription.stub
+    - stubs/Braintree/Subscription/StatusDetails.stub
+    - stubs/Braintree/Transaction.stub

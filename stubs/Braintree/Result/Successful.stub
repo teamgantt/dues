@@ -1,0 +1,10 @@
+<?php
+
+namespace Braintree\Result;
+
+/**
+ * @property string $message
+ */
+class Successful
+{
+}
