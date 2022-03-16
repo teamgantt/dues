@@ -8,17 +8,15 @@ use DateTime;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use TeamGantt\Dues\Arr;
-use TeamGantt\Dues\Model\Address;
-use TeamGantt\Dues\Model\Address\Country;
-use TeamGantt\Dues\Model\Address\State;
 use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\PaymentMethod;
 use TeamGantt\Dues\Model\PaymentMethod\Nonce;
 use TeamGantt\Dues\Model\PaymentMethod\Token;
-use Throwable;
 
 class PaymentMethodMapper
 {
+    use MapsAddresses;
+
     /**
      * @return mixed[]
      *
@@ -79,31 +77,10 @@ class PaymentMethodMapper
 
         $billingAddress = $paymentMethod->billingAddress;
         if ($billingAddress instanceof BraintreeAddress) {
-            $state = $this->getStateFromAddress($billingAddress);
-            $country = $this->getCountryFromAddress($billingAddress);
-
-            $token->setBillingAddress(new Address($state, $billingAddress->postalCode, $country));
+            $address = $this->toAddress($billingAddress);
+            $token->setBillingAddress($address);
         }
 
         return $token;
-    }
-
-    protected function getStateFromAddress(BraintreeAddress $address): ?State
-    {
-        try {
-            return new State($address->region);
-        } catch (Throwable $e) {
-            return null;
-        }
-    }
-
-    protected function getCountryFromAddress(BraintreeAddress $address): ?Country
-    {
-        try {
-            // countryCodeAlpha2 exists but is not documented on the BraintreeAddress
-            return new Country($address->countryCodeAlpha2); // @phpstan-ignore-line
-        } catch (Throwable $e) {
-            return null;
-        }
     }
 }

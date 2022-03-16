@@ -15,6 +15,7 @@ namespace Braintree;
  * @property \Braintree\Customer $customerDetails
  * @property string $type
  * @property string $status
+ * @property \Braintree\Transaction\AddressDetails $billingDetails
  */
 class Transaction
 {

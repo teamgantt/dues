@@ -38,6 +38,8 @@ class Transaction extends Entity
 
     protected ?PayPalDetails $payPalDetails = null;
 
+    protected ?Address $billingDetails = null;
+
     public function __construct(string $id = '', ?Subscription $subscription = null)
     {
         parent::__construct($id);
@@ -76,6 +78,18 @@ class Transaction extends Entity
     public function setStatus(Status $status): self
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getBillingDetails(): ?Address
+    {
+        return $this->billingDetails;
+    }
+
+    public function setBillingDetails(Address $details): self
+    {
+        $this->billingDetails = $details;
 
         return $this;
     }

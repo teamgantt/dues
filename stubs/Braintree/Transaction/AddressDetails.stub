@@ -1,12 +1,12 @@
 <?php
 
-namespace Braintree;
+namespace Braintree\Transaction;
 
 /**
  * @property string $postalCode
  * @property string $region
  * @property string $streetAddress
  */
-class Address
+class AddressDetails
 {
 }
