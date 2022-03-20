@@ -6,6 +6,7 @@ namespace Braintree\Transaction;
  * @property string $postalCode
  * @property string $region
  * @property string $streetAddress
+ * @property string $countryCodeAlpha2
  */
 class AddressDetails
 {

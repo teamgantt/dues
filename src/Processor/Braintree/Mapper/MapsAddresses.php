@@ -43,7 +43,7 @@ trait MapsAddresses
     {
         try {
             // countryCodeAlpha2 exists but is not documented on the BraintreeAddress
-            return new Country($braintreeAddress->countryCodeAlpha2); // @phpstan-ignore-line
+            return new Country($braintreeAddress->countryCodeAlpha2);
         } catch (Throwable $e) {
             return null;
         }
