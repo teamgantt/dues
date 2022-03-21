@@ -12,6 +12,7 @@ trait Transaction
 
     /**
      * @group integration
+     * @group transactions
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -28,6 +29,7 @@ trait Transaction
 
     /**
      * @group integration
+     * @group transactions
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -45,6 +47,7 @@ trait Transaction
 
     /**
      * @group integration
+     * @group transactions
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -67,6 +70,7 @@ trait Transaction
 
     /**
      * @group integration
+     * @group transactions
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -89,6 +93,7 @@ trait Transaction
 
     /**
      * @group integration
+     * @group transactions
      * @dataProvider subscriptionProvider
      *
      * @return void

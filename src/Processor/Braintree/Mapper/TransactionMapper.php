@@ -4,6 +4,7 @@ namespace TeamGantt\Dues\Processor\Braintree\Mapper;
 
 use Braintree\PaymentInstrumentType as BraintreePaymentInstrumentType;
 use Braintree\Transaction as BraintreeTransaction;
+use TeamGantt\Dues\Model\Address;
 use TeamGantt\Dues\Model\CreditCardType;
 use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\Money;
@@ -19,6 +20,8 @@ use TeamGantt\Dues\Model\Transaction\Type;
 
 class TransactionMapper
 {
+    use MapsAddresses;
+
     private AddOnMapper $addOnMapper;
 
     private DiscountMapper $discountMapper;
@@ -45,9 +48,20 @@ class TransactionMapper
             ->setType($this->getType($result))
             ->setPaymentInstrumentType($this->getPaymentInstrumentType($result));
 
+        if (isset($result->billingDetails)) {
+            $transaction->setBillingDetails($this->getBillingDetails($result));
+        }
+
         $this->setPaymentInstrument($transaction, $result);
 
         return $transaction;
+    }
+
+    private function getBillingDetails(BraintreeTransaction $result): Address
+    {
+        $address = $result->billingDetails;
+
+        return $this->toAddress($address);
     }
 
     private function setPaymentInstrument(Transaction $transaction, BraintreeTransaction $result): void

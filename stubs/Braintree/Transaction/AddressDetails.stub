@@ -1,6 +1,6 @@
 <?php
 
-namespace Braintree;
+namespace Braintree\Transaction;
 
 /**
  * @property string $postalCode
@@ -8,6 +8,6 @@ namespace Braintree;
  * @property string $streetAddress
  * @property string $countryCodeAlpha2
  */
-class Address
+class AddressDetails
 {
 }

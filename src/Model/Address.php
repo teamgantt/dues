@@ -14,11 +14,18 @@ class Address implements Arrayable
 
     protected ?Country $country = null;
 
-    public function __construct(?State $state = null, ?string $postalCode = null, ?Country $country = null)
+    protected ?string $streetAddress = null;
+
+    public function __construct(
+        ?State $state = null,
+        ?string $postalCode = null,
+        ?Country $country = null,
+        ?string $streetAddress = null)
     {
         $this->state = $state;
         $this->postalCode = $postalCode;
         $this->country = $country;
+        $this->streetAddress = $streetAddress;
     }
 
     public function getPostalCode(): ?string
@@ -36,12 +43,18 @@ class Address implements Arrayable
         return $this->country;
     }
 
+    public function getStreetAddress(): ?string
+    {
+        return $this->streetAddress;
+    }
+
     public function toArray(): array
     {
         return array_filter([
             'postalCode' => $this->postalCode,
             'state' => isset($this->state) ? $this->state->value : null,
             'country' => isset($this->country) ? $this->country : null,
+            'streetAddress' => $this->streetAddress,
         ]);
     }
 }
