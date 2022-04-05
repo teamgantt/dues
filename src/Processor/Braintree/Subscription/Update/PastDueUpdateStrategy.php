@@ -16,7 +16,6 @@ class PastDueUpdateStrategy extends DefaultUpdateStrategy
         try {
             // handle delinquent subscription.
             $this->setNewPaymentMethod($subscription);
-            $this->retrySubscription($subscription);
 
             // update the no longer delinquent subscription per changes provided.
             return parent::update($subscription);
@@ -48,19 +47,5 @@ class PastDueUpdateStrategy extends DefaultUpdateStrategy
         }
 
         return $updatePaymentMethod;
-    }
-
-    /**
-     * After a new payment method has been assigned attempt to bring the subscription to current.
-     */
-    private function retrySubscription(Subscription $subscription): Successful
-    {
-        $retrySubscription = $this->braintree->subscription()->retryCharge($subscription->getId());
-
-        if ($retrySubscription instanceof Error) {
-            throw new SubscriptionNotUpdatedException('Unable to resolve delinquent subscription before upgrading.');
-        }
-
-        return $retrySubscription;
     }
 }
