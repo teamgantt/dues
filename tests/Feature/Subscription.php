@@ -314,7 +314,7 @@ trait Subscription
         $this->assertTrue($subscription->is(Status::canceled()));
 
         $rollover = $subscription->getRemainingValue()->getAmount();
-        $this->assertEquals($rollover, 1726.81);
+        $this->assertEquals($rollover, 1726.83);
     }
 
     /**
