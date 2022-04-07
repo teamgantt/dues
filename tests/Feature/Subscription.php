@@ -92,6 +92,33 @@ trait Subscription
      *
      * @return void
      */
+    public function testVerifyASubscriptionsBillingPeriod(callable $customerFactory)
+    {
+        $customer = $customerFactory($this->dues);
+        $plan = $this->dues->findPlanById('test-plan-c-monthly');
+        $today = new DateTime('now', new DateTimeZone('UTC'));
+        $daysInMonth = $today->format('t');
+
+        $subscription = (new SubscriptionBuilder())
+            ->withCustomer($customer)
+            ->withPlan($plan)
+            ->build();
+
+        /**
+         * @var ModelSubscription
+         */
+        $subscription = $this->dues->createSubscription($subscription);
+
+        $this->assertEquals($daysInMonth, $subscription->getBillingPeriod()->getBillingCycle());
+        $this->assertEquals($daysInMonth - 1, $subscription->getBillingPeriod()->getRemainingBillingCycle());
+    }
+
+    /**
+     * @group integration
+     * @dataProvider customerProvider
+     *
+     * @return void
+     */
     public function testCreateSubscriptionWithListener(callable $customerFactory)
     {
         $customer = $customerFactory($this->dues);

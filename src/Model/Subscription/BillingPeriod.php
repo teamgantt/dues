@@ -39,7 +39,7 @@ class BillingPeriod
             throw new BillingPeriodCycleException('Unable to determine the number of days in the billing cycle.');
         }
 
-        return $days;
+        return $days + 1; // add one day to include the start day of the cycle
     }
 
     /**
@@ -55,6 +55,6 @@ class BillingPeriod
             throw new BillingPeriodCycleException('Unable to determine the number of days remaining in the current billing cycle.');
         }
 
-        return $remainingDays;
+        return $remainingDays + 1; // add one day to include today
     }
 }
