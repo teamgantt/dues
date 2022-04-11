@@ -4,6 +4,7 @@ namespace TeamGantt\Dues\Tests\Feature;
 
 use DateInterval;
 use DateTime;
+use DateTimeImmutable;
 use DateTimeZone;
 use TeamGantt\Dues\Arr;
 use TeamGantt\Dues\Event\BaseEventListener;
@@ -16,9 +17,11 @@ use TeamGantt\Dues\Model\Money;
 use TeamGantt\Dues\Model\Plan;
 use TeamGantt\Dues\Model\Price;
 use TeamGantt\Dues\Model\Subscription as ModelSubscription;
+use TeamGantt\Dues\Model\Subscription\BillingPeriod;
 use TeamGantt\Dues\Model\Subscription\Modifiers;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Subscription\SubscriptionBuilder;
+use TeamGantt\Dues\Processor\Braintree\Mapper\SubscriptionMapper;
 use TeamGantt\Dues\Tests\ProvidesTestData;
 
 trait Subscription
@@ -1039,5 +1042,51 @@ trait Subscription
         $value = $subscription->getValue();
 
         $this->assertEquals(7.50, $value->getAmount());
+    }
+
+    /**
+     * @group integration
+     * @dataProvider subscriptionProvider
+     *
+     * @return void
+     */
+    public function testSubscriptionValuesWhenSubscriptionHasBalance()
+    {
+        // Guarantee that we are always 1 day into a 30 day subscription.
+        $today = new DateTimeImmutable('UTC');
+        $subscriptionStart = $today->modify('-1 day');
+        $subscriptionEnd = $today->modify('+28 days');
+
+        $subscription = new ModelSubscription();
+        $price = new Price(15.00);
+        $subscription->setPrice($price);
+        $discount = new Discount('balance', 1, new Price(384.04));
+        $discount->setIsExpired(true);
+        $subscription->addDiscount($discount);
+        $subscription->addAddOn(new AddOn('test-2', 3, new Price(9.95)));
+        $subscription->setBillingPeriod(
+            new BillingPeriod($subscriptionStart, $subscriptionEnd)
+        );
+        $subscription->setBalance(new Money(-339.19));
+
+        $calculator = new class() extends SubscriptionMapper {
+            public function __construct()
+            {
+                // Override mapper constructor
+            }
+
+            public function exposeSetRemainingValue(ModelSubscription $subscription): ModelSubscription
+            {
+                return $this->setRemainingValue($subscription);
+            }
+        };
+
+        $hydratedSubscription = $calculator->exposeSetRemainingValue($subscription);
+
+        $this->assertEquals(30, $hydratedSubscription->getBillingPeriod()->getBillingCycle());
+        $this->assertEquals(29, $hydratedSubscription->getBillingPeriod()->getRemainingBillingCycle());
+        $this->assertEquals(-339.19, $hydratedSubscription->getBalance()->getAmount());
+        $this->assertEquals(44.85, $hydratedSubscription->getValue()->getAmount());
+        $this->assertEquals(43.36, $hydratedSubscription->getRemainingValue()->getAmount());
     }
 }
