@@ -201,6 +201,10 @@ class Subscription extends Entity implements Arrayable, Valuable
         }
 
         $priceReducer = function (float $value, Modifier $mod) {
+            if (true === $mod->isExpired()) {
+                return $value;
+            }
+
             return $value + $mod->getValue()->getAmount();
         };
 

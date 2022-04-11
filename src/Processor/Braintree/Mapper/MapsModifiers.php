@@ -18,8 +18,15 @@ trait MapsModifiers
             $builder->withQuantity($result->quantity);
         }
 
+        $neverExpires = isset($result->neverExpires) ? $result->neverExpires : true;
+        $numberOfBillingCycles = isset($result->numberOfBillingCycles) ? $result->numberOfBillingCycles : INF;
+        $currentBillingCycle = isset($result->currentBillingCycle) ? $result->currentBillingCycle : 1;
+
+        $isExpired = !$neverExpires && $currentBillingCycle >= $numberOfBillingCycles;
+
         $builder
             ->withId($result->id)
-            ->withPrice(new Price(floatval($result->amount)));
+            ->withPrice(new Price(floatval($result->amount)))
+            ->withIsExpired($isExpired);
     }
 }

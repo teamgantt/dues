@@ -5,6 +5,9 @@ namespace Braintree;
 /**
  * @property string $id
  * @property float $amount
+ * @property int $currentBillingCycle
+ * @property bool $neverExpires
+ * @property ?int $numberOfBillingCycles
  */
 class AddOn
 {

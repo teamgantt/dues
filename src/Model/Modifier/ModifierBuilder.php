@@ -23,6 +23,11 @@ abstract class ModifierBuilder extends Builder
         return $this->with('price', $price);
     }
 
+    public function withIsExpired(bool $isExpired): self
+    {
+        return $this->with('isExpired', $isExpired);
+    }
+
     protected function buildModifier(Modifier $modifier): void
     {
         if (isset($this->data['quantity'])) {
@@ -30,6 +35,7 @@ abstract class ModifierBuilder extends Builder
         }
 
         $modifier->setPrice($this->data['price'] ?? new NullPrice());
+        $modifier->setIsExpired($this->data['isExpired'] ?? false);
 
         $this->reset();
     }
