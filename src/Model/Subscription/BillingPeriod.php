@@ -3,26 +3,27 @@
 namespace TeamGantt\Dues\Model\Subscription;
 
 use DateTime;
+use DateTimeInterface;
 use TeamGantt\Dues\Exception\BillingPeriodCycleException;
 
 class BillingPeriod
 {
-    protected DateTime $startDate;
+    protected DateTimeInterface $startDate;
 
-    protected DateTime $endDate;
+    protected DateTimeInterface $endDate;
 
-    public function __construct(DateTime $startDate, DateTime $endDate)
+    public function __construct(DateTimeInterface $startDate, DateTimeInterface $endDate)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
     }
 
-    public function getEndDate(): DateTime
+    public function getEndDate(): DateTimeInterface
     {
         return $this->endDate;
     }
 
-    public function getStartDate(): DateTime
+    public function getStartDate(): DateTimeInterface
     {
         return $this->startDate;
     }
