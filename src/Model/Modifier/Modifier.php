@@ -15,6 +15,8 @@ abstract class Modifier extends Entity implements Arrayable, Valuable
 
     protected ?int $quantity = null;
 
+    protected bool $isExpired = false;
+
     public function __construct(string $id = '', ?int $quantity = null, ?Price $price = null)
     {
         parent::__construct($id);
@@ -25,6 +27,18 @@ abstract class Modifier extends Entity implements Arrayable, Valuable
     public function getPrice(): ?Price
     {
         return $this->price;
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->isExpired;
+    }
+
+    public function setIsExpired(bool $isExpired): Modifier
+    {
+        $this->isExpired = $isExpired;
+
+        return $this;
     }
 
     public function setPrice(Price $price): Modifier
