@@ -294,6 +294,63 @@ trait Subscription
      *
      * @return void
      */
+    public function testUpdateSubscriptionPlanToPlanWithDifferentBillingCycleWithPastStartDate(callable $subscriptionFactory)
+    {
+        $subscription = $subscriptionFactory($this->dues, null, fn (ModelSubscription $s) => $s->beginImmediately());
+        $plan = $this->dues->findPlanById('test-plan-c-monthly');
+        $subscription->setPlan($plan);
+
+        // A subscription cannot be created in the past in Braintree, so we're faking it to a date in the past
+        $subscription->setStartDate(new DateTime('2020-01-01T00:00:00'));
+        $updated = $this->dues->updateSubscription($subscription);
+
+        $this->assertEquals('test-plan-c-monthly', $updated->getPlan()->getId());
+        $this->assertEquals($plan->getPrice()->getAmount(), $updated->getPrice()->getAmount());
+        $this->assertGreaterThan(0, count($updated->getDiscounts()));
+        $this->assertTrue($updated->is(Status::active()));
+        $this->assertTrue($subscription->is(Status::canceled()));
+        $balance = $updated->getBalance()->getAmount();
+        $price = $updated->getPrice()->getAmount();
+        $addOnPrice = $updated->getAddOns()[0]->getPrice()->getAmount();
+        $rollover = $subscription->getRemainingValue()->getAmount();
+        $this->assertEquals($price + $addOnPrice - $rollover, $balance);
+    }
+
+    /**
+     * @group integration
+     * @dataProvider subscriptionProvider
+     *
+     * @return void
+     */
+    public function testUpdateSubscriptionPlanToPlanWithDifferentBillingCycleWithFutureStartDate(callable $subscriptionFactory)
+    {
+        $now = new DateTime('now', new DateTimeZone('UTC'));
+        $startDate = $now->add(new DateInterval('P1D')); // start 1 day in the future
+        $subscription = $subscriptionFactory($this->dues, null, fn (ModelSubscription $s) => $s->setStartDate($startDate));
+        $plan = $this->dues->findPlanById('test-plan-c-monthly');
+        $subscription->setPlan($plan);
+
+        $updated = $this->dues->updateSubscription($subscription);
+
+        $this->assertEquals('test-plan-c-monthly', $updated->getPlan()->getId());
+        $this->assertEquals($plan->getPrice()->getAmount(), $updated->getPrice()->getAmount());
+        $this->assertEquals(0, count($updated->getDiscounts()));
+        $this->assertTrue($updated->is(Status::pending()));
+        $this->assertTrue($subscription->is(Status::canceled()));
+        $balance = $updated->getBalance()->getAmount();
+        $price = $updated->getPrice()->getAmount();
+        $addOnPrice = $updated->getAddOns()[0]->getPrice()->getAmount();
+        $rollover = $subscription->getRemainingValue()->getAmount();
+        $this->assertEquals(0, $balance);
+        $this->assertEquals($subscription->getStartDate()->format('Y-m-d'), $startDate->format('Y-m-d'));
+    }
+
+    /**
+     * @group integration
+     * @dataProvider subscriptionProvider
+     *
+     * @return void
+     */
     public function testUpdateSubscriptionPlanToPlanWithDifferentBillingCycleFromYearly(callable $subscriptionFactory)
     {
         $subscription = $subscriptionFactory($this->dues, null, function (ModelSubscription $s) {
