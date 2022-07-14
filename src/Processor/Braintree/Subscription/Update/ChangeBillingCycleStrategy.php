@@ -2,6 +2,7 @@
 
 namespace TeamGantt\Dues\Processor\Braintree\Subscription\Update;
 
+use DateTime;
 use TeamGantt\Dues\Exception\IllegalStateException;
 use TeamGantt\Dues\Model\Modifier\AddOn;
 use TeamGantt\Dues\Model\Modifier\Discount;
@@ -67,11 +68,21 @@ class ChangeBillingCycleStrategy extends BaseUpdateStrategy
         $discounts = $newSubscription->getDiscountsImpl();
         $addOns = $newSubscription->getAddOnsImpl();
 
-        return $newSubscription
+        $newSubscription
             ->merge($original)
             ->setCustomer($original->getCustomer())
             ->setAddOns($addOns)
             ->setDiscounts($discounts);
+
+        // Braintree doesn't allow firstBillingDates in the past.
+        // When upgrading an existing subscription to new billing cycle, clear the startDate if the startDate is in the past.
+        $today = new DateTime('utc');
+
+        if ($newSubscription->getStartDate() < $today) {
+            $newSubscription->beginImmediately();
+        }
+
+        return $newSubscription;
     }
 
     private function getNewPurchaseModifier(Subscription $sub): ?Modifier
