@@ -1182,4 +1182,42 @@ trait Subscription
         $this->assertEquals(44.85, $hydratedSubscription->getValue()->getAmount());
         $this->assertEquals(43.36, $hydratedSubscription->getRemainingValue()->getAmount());
     }
+
+    /**
+     * @group integration
+     *
+     * @dataProvider customerProvider
+     *
+     * @return void
+     */
+    public function testCreatingSubscriptionWithSpecifiedBillingCyclesModifiers(callable $customerFactory)
+    {
+        $customer = $customerFactory($this->dues);
+        $plan = $this->dues->findPlanById('test-plan-c-monthly');
+
+        $unlimitedDiscount = new Discount('promo_discount', 1, new Price(10));
+        $unlimitedDiscount->setNumberOfBillingCycles(INF);
+
+        $singleDiscount = new Discount('test-discount-a', 1, new Price(10));
+        $singleDiscount->setNumberOfBillingCycles(1);
+
+        $baseSubscription = (new SubscriptionBuilder())
+            ->withCustomer($customer)
+            ->withPlan($plan)
+            ->withDiscount($unlimitedDiscount)
+            ->withDiscount($singleDiscount)
+            ->build();
+
+        $subscription = $this->dues->createSubscription($baseSubscription);
+
+        $discounts = $subscription->getDiscounts();
+
+        $unlimited = array_values(array_filter($discounts, fn (Discount $d) => 'promo_discount' === $d->getId()))[0] ?? null;
+        $single = array_values(array_filter($discounts, fn (Discount $d) => 'test-discount-a' === $d->getId()))[0] ?? null;
+
+        $this->assertNotNull($unlimited);
+        $this->assertNotNull($single);
+        $this->assertEquals(INF, $unlimited->getNumberOfBillingCycles());
+        $this->assertEquals(1, $single->getNumberOfBillingCycles());
+    }
 }

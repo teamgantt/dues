@@ -27,6 +27,7 @@ trait MapsModifiers
         $builder
             ->withId($result->id)
             ->withPrice(new Price(floatval($result->amount)))
-            ->withIsExpired($isExpired);
+            ->withIsExpired($isExpired)
+            ->withNumberOfBillingCycles($numberOfBillingCycles);
     }
 }

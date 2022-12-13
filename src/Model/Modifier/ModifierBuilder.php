@@ -28,6 +28,11 @@ abstract class ModifierBuilder extends Builder
         return $this->with('isExpired', $isExpired);
     }
 
+    public function withNumberOfBillingCycles(float $numberOfBillingCycles): self
+    {
+        return $this->with('numberOfBillingCycles', $numberOfBillingCycles);
+    }
+
     protected function buildModifier(Modifier $modifier): void
     {
         if (isset($this->data['quantity'])) {
@@ -36,6 +41,10 @@ abstract class ModifierBuilder extends Builder
 
         $modifier->setPrice($this->data['price'] ?? new NullPrice());
         $modifier->setIsExpired($this->data['isExpired'] ?? false);
+
+        if (isset($this->data['numberOfBillingCycles'])) {
+            $modifier->setNumberOfBillingCycles($this->data['numberOfBillingCycles']);
+        }
 
         $this->reset();
     }
