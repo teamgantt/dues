@@ -5,8 +5,6 @@ namespace TeamGantt\Dues\Processor\Braintree\Query;
 use Braintree\Gateway;
 use Braintree\Subscription as BraintreeSubscription;
 use Braintree\SubscriptionSearch;
-use DateTimeInterface;
-use Exception;
 use TeamGantt\Dues\Exception\InvalidSubscriptionSearchParamException;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Processor\Braintree\Hydrator\SubscriptionHydrator;
@@ -47,7 +45,7 @@ class SubscriptionQuery
         return $this;
     }
 
-    public function whereNextBillingDateIs(DateTimeInterface $date): self
+    public function whereNextBillingDateIs(\DateTimeInterface $date): self
     {
         $this->searchParams['nextBillingDate'] = SubscriptionSearch::nextBillingDate()->is($date);
 
@@ -74,7 +72,7 @@ class SubscriptionQuery
             $this->hydrator->hydrate([$subscription]);
 
             return $subscription;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return null;
         }
     }

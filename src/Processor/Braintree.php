@@ -3,7 +3,6 @@
 namespace TeamGantt\Dues\Processor;
 
 use Braintree\Gateway as BraintreeGateway;
-use DateTime;
 use TeamGantt\Dues\Contracts\SubscriptionGateway;
 use TeamGantt\Dues\Event\Dispatcher;
 use TeamGantt\Dues\Model\Customer;
@@ -137,7 +136,7 @@ class Braintree implements SubscriptionGateway
     /**
      * @return Transaction[]
      */
-    public function findTransactionsByCustomerId(string $customerId, ?DateTime $start = null, ?DateTime $end = null): array
+    public function findTransactionsByCustomerId(string $customerId, ?\DateTime $start = null, ?\DateTime $end = null): array
     {
         return $this->transactions->findByCustomerId($customerId, $start, $end);
     }

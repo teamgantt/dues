@@ -6,7 +6,6 @@ use Braintree\Error\Codes;
 use Braintree\Gateway;
 use Braintree\Result\Error;
 use Braintree\Result\Successful;
-use Exception;
 use TeamGantt\Dues\Exception\SubscriptionNotUpdatedException;
 use TeamGantt\Dues\Exception\UnknownException;
 use TeamGantt\Dues\Model\Subscription;
@@ -51,7 +50,7 @@ class DefaultUpdateStrategy extends BaseUpdateStrategy
             }
 
             return $subscription->merge($updated);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw new SubscriptionNotUpdatedException($e->getMessage());
         }
     }

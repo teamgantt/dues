@@ -2,7 +2,6 @@
 
 namespace TeamGantt\Dues\Contracts;
 
-use DateTime;
 use TeamGantt\Dues\Event\Dispatcher;
 use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\Customer\CustomerSession;
@@ -56,7 +55,7 @@ interface SubscriptionGateway
     /**
      * @return Transaction[]
      */
-    public function findTransactionsByCustomerId(string $customerId, ?DateTime $start = null, ?DateTime $end = null): array;
+    public function findTransactionsByCustomerId(string $customerId, ?\DateTime $start = null, ?\DateTime $end = null): array;
 
     /**
      * @return Transaction[]

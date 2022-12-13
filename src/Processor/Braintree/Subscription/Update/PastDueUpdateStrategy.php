@@ -4,7 +4,6 @@ namespace TeamGantt\Dues\Processor\Braintree\Subscription\Update;
 
 use Braintree\Result\Error;
 use Braintree\Result\Successful;
-use Exception;
 use TeamGantt\Dues\Exception\SubscriptionNotUpdatedException;
 use TeamGantt\Dues\Model\PaymentMethod\Token;
 use TeamGantt\Dues\Model\Subscription;
@@ -19,7 +18,7 @@ class PastDueUpdateStrategy extends DefaultUpdateStrategy
 
             // update the no longer delinquent subscription per changes provided.
             return parent::update($subscription);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw new SubscriptionNotUpdatedException($e->getMessage());
         }
     }

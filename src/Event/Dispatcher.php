@@ -2,7 +2,6 @@
 
 namespace TeamGantt\Dues\Event;
 
-use SplObjectStorage;
 use TeamGantt\Dues\Contracts\EventListener;
 use TeamGantt\Dues\Contracts\EventListenerContainer;
 use TeamGantt\Dues\Model\Customer;
@@ -11,13 +10,13 @@ use TeamGantt\Dues\Model\Subscription;
 class Dispatcher implements EventListenerContainer
 {
     /**
-     * @var SplObjectStorage<EventListener, EventListener>
+     * @var \SplObjectStorage<EventListener, EventListener>
      */
-    protected SplObjectStorage $listeners;
+    protected \SplObjectStorage $listeners;
 
     public function __construct()
     {
-        $this->listeners = new SplObjectStorage();
+        $this->listeners = new \SplObjectStorage();
     }
 
     public function addListener(EventListener $listener): void

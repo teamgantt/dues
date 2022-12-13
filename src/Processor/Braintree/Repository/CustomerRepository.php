@@ -5,7 +5,6 @@ namespace TeamGantt\Dues\Processor\Braintree\Repository;
 use Braintree\Customer as BraintreeCustomer;
 use Braintree\CustomerSearch;
 use Braintree\Gateway;
-use Exception;
 use TeamGantt\Dues\Exception\CustomerNotCreatedException;
 use TeamGantt\Dues\Exception\CustomerNotDeletedException;
 use TeamGantt\Dues\Exception\CustomerNotUpdatedException;
@@ -74,7 +73,7 @@ class CustomerRepository
         $paymentMethods = [];
         foreach ($allPaymentMethods as $paymentMethod) {
             if ($paymentMethod->isNew()) {
-                $paymentMethods[] = ($this->paymentMethods->add($paymentMethod))->setIsDefaultPaymentMethod($paymentMethod->isDefaultPaymentMethod());
+                $paymentMethods[] = $this->paymentMethods->add($paymentMethod)->setIsDefaultPaymentMethod($paymentMethod->isDefaultPaymentMethod());
             } else {
                 $paymentMethods[] = $paymentMethod;
             }
@@ -111,7 +110,7 @@ class CustomerRepository
                 $message = isset($result->message) ? $result->message : 'Unknown message';
                 throw new CustomerNotDeletedException($message);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw new CustomerNotDeletedException($e->getMessage());
         }
     }
@@ -156,7 +155,7 @@ class CustomerRepository
             return $result;
         } catch (UnknownException $e) {
             throw $e;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return null;
         }
     }

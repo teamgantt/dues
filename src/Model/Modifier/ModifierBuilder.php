@@ -42,8 +42,6 @@ abstract class ModifierBuilder extends Builder
 
     /**
      * @param mixed $v
-     *
-     * @return ModifierBuilder
      */
     protected function with(string $k, $v): self
     {

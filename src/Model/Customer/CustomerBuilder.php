@@ -79,8 +79,6 @@ class CustomerBuilder extends Builder
 
     /**
      * @param mixed $v
-     *
-     * @return CustomerBuilder
      */
     protected function with(string $k, $v): self
     {

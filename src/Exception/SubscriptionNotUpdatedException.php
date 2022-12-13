@@ -2,8 +2,6 @@
 
 namespace TeamGantt\Dues\Exception;
 
-use RuntimeException;
-
-class SubscriptionNotUpdatedException extends RuntimeException
+class SubscriptionNotUpdatedException extends \RuntimeException
 {
 }

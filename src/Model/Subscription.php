@@ -2,7 +2,6 @@
 
 namespace TeamGantt\Dues\Model;
 
-use DateTime;
 use TeamGantt\Dues\Contracts\Arrayable;
 use TeamGantt\Dues\Contracts\Valuable;
 use TeamGantt\Dues\Model\Modifier\AddOn;
@@ -21,7 +20,7 @@ class Subscription extends Entity implements Arrayable, Valuable
 {
     protected ?BillingPeriod $billingPeriod = null;
 
-    protected ?DateTime $startDate = null;
+    protected ?\DateTime $startDate = null;
 
     protected ?Price $price = null;
 
@@ -103,9 +102,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this->remainingValue;
     }
 
-    /**
-     * @return Subscription
-     */
     public function setRemainingValue(Money $value): self
     {
         $this->remainingValue = $value;
@@ -113,9 +109,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this;
     }
 
-    /**
-     * @return Subscription
-     */
     public function setBillingPeriod(BillingPeriod $period): self
     {
         $this->billingPeriod = $period;
@@ -174,8 +167,6 @@ class Subscription extends Entity implements Arrayable, Valuable
     /**
      * Closing a subscription out sets plan, price, and modifier
      * totals to zero values.
-     *
-     * @return Subscription
      */
     public function closeOut(): self
     {
@@ -216,9 +207,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return new Money($priceValue + $addOnValue - $discountValue);
     }
 
-    /**
-     * @return Subscription
-     */
     public function setBalance(Money $balance): self
     {
         $this->balance = $balance;
@@ -226,9 +214,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this;
     }
 
-    /**
-     * @return Subscription
-     */
     public function addDiscount(Discount $discount): self
     {
         $this->discounts->push($discount, OperationType::add());
@@ -266,9 +251,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this->toModifierArray($this->discounts);
     }
 
-    /**
-     * @return Subscription
-     */
     public function setDiscounts(Modifiers $discounts): self
     {
         $this->discounts = $discounts;
@@ -276,9 +258,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this;
     }
 
-    /**
-     * @return Subscription
-     */
     public function setInitialDiscounts(Modifiers $discounts): self
     {
         $this->initialDiscounts = $discounts;
@@ -286,9 +265,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this;
     }
 
-    /**
-     * @return Subscription
-     */
     public function removeDiscount(string $id): self
     {
         $this->discounts->push(new Discount($id), OperationType::remove());
@@ -296,9 +272,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this;
     }
 
-    /**
-     * @return Subscription
-     */
     public function addAddOn(AddOn $addOn): self
     {
         $this->addOns->push($addOn, OperationType::add());
@@ -336,9 +309,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this->toModifierArray($this->initialAddOns);
     }
 
-    /**
-     * @return Subscription
-     */
     public function setAddOns(Modifiers $addOns): self
     {
         $this->addOns = $addOns;
@@ -346,9 +316,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this;
     }
 
-    /**
-     * @return Subscription
-     */
     public function setInitialAddOns(Modifiers $addOns): self
     {
         $this->initialAddOns = $addOns;
@@ -356,9 +323,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this;
     }
 
-    /**
-     * @return Subscription
-     */
     public function removeAddOn(string $id): self
     {
         $this->addOns->push(new AddOn($id), OperationType::remove());
@@ -366,15 +330,12 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this;
     }
 
-    public function getStartDate(): ?DateTime
+    public function getStartDate(): ?\DateTime
     {
         return $this->startDate;
     }
 
-    /**
-     * @return Subscription
-     */
-    public function setStartDate(DateTime $startDate): self
+    public function setStartDate(\DateTime $startDate): self
     {
         $this->startDate = $startDate;
 
@@ -396,9 +357,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this->price;
     }
 
-    /**
-     * @return Subscription
-     */
     public function setPrice(Price $price): self
     {
         $this->price = $price;
@@ -440,9 +398,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this->statusHistory;
     }
 
-    /**
-     * @return Subscription
-     */
     public function setStatus(Status $status): self
     {
         $this->status = $status;
@@ -465,9 +420,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this->daysPastDue;
     }
 
-    /**
-     * @return Subscription
-     */
     public function setDaysPastDue(int $daysPastDue): self
     {
         $this->daysPastDue = $daysPastDue;
@@ -475,9 +427,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this;
     }
 
-    /**
-     * @return Subscription
-     */
     public function cancel(): self
     {
         return $this->setStatus(Status::canceled());
@@ -511,9 +460,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return null;
     }
 
-    /**
-     * @return Subscription
-     */
     public function setPaymentMethod(PaymentMethod $paymentMethod): self
     {
         $this->paymentMethod = $paymentMethod;
@@ -526,9 +472,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this->plan;
     }
 
-    /**
-     * @return Subscription
-     */
     public function setPlan(Plan $plan): self
     {
         if ($plan->isEqualTo($this->plan)) {
@@ -544,9 +487,6 @@ class Subscription extends Entity implements Arrayable, Valuable
         return $this;
     }
 
-    /**
-     * @return Subscription
-     */
     public function resetPlan(Plan $plan): self
     {
         $this->previousPlan = null;
@@ -586,8 +526,6 @@ class Subscription extends Entity implements Arrayable, Valuable
      * Set the value of transactions.
      *
      * @param Transaction[] $transactions
-     *
-     * @return Subscription
      */
     public function setTransactions(array $transactions): self
     {

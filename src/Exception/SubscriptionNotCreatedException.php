@@ -2,10 +2,9 @@
 
 namespace TeamGantt\Dues\Exception;
 
-use RuntimeException;
 use TeamGantt\Dues\Model\Customer;
 
-class SubscriptionNotCreatedException extends RuntimeException
+class SubscriptionNotCreatedException extends \RuntimeException
 {
     protected ?Customer $customer = null;
 

@@ -3,7 +3,6 @@
 namespace TeamGantt\Dues\Processor\Braintree\Repository;
 
 use Braintree\Gateway;
-use Exception;
 use TeamGantt\Dues\Arr;
 use TeamGantt\Dues\Event\Dispatcher;
 use TeamGantt\Dues\Event\EventType;
@@ -108,7 +107,7 @@ class SubscriptionRepository
             $this->hydrator->hydrate([$subscription]);
 
             return $subscription;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return null;
         }
     }
