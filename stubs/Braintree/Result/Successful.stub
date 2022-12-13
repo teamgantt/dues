@@ -4,6 +4,8 @@ namespace Braintree\Result;
 
 /**
  * @property string $message
+ * @property \Braintree\PaymentMethod $paymentMethod
+ * @property \Braintree\Customer $customer
  */
 class Successful
 {

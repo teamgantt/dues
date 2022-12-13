@@ -16,6 +16,7 @@ namespace Braintree;
  * @property string $type
  * @property string $status
  * @property \Braintree\Transaction\AddressDetails $billingDetails
+ * @property \Braintree\Transaction\PayPalDetails $paypalDetails
  */
 class Transaction
 {
