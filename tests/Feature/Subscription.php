@@ -1144,8 +1144,9 @@ trait Subscription
      */
     public function testSubscriptionValuesWhenSubscriptionHasBalance()
     {
-        // Guarantee that we are always 1 day into a 30 day subscription.
-        $today = new \DateTimeImmutable('UTC');
+        // Set time to the last possible microsecond of the day to guarantee
+        // we will always be only one day into the subscription.
+        $today = (new \DateTimeImmutable('UTC'))->setTime(23, 59, 59, 999);
         $subscriptionStart = $today->modify('-1 day');
         $subscriptionEnd = $today->modify('+28 days');
 

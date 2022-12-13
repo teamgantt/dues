@@ -204,7 +204,7 @@ class Subscription extends Entity implements Arrayable, Valuable
         $addOnValue = array_reduce($this->addOns->toModifierArray(), $priceReducer, 0.0);
         $discountValue = array_reduce($this->discounts->toModifierArray(), $priceReducer, 0.0);
 
-        return new Money($priceValue + $addOnValue - $discountValue);
+        return new Money(round($priceValue + $addOnValue - $discountValue, 2));
     }
 
     public function setBalance(Money $balance): self
