@@ -18,7 +18,7 @@
         }
     ],
     "require": {
-        "php": ">=7.4",
+        "php": ">=8.1",
         "braintree/braintree_php": "^6.7",
         "spatie/enum": "^3.5"
     },

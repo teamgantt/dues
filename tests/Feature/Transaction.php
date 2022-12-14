@@ -2,7 +2,6 @@
 
 namespace TeamGantt\Dues\Tests\Feature;
 
-use DateTime;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Tests\ProvidesTestData;
 
@@ -13,6 +12,7 @@ trait Transaction
     /**
      * @group integration
      * @group transactions
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -30,6 +30,7 @@ trait Transaction
     /**
      * @group integration
      * @group transactions
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -48,6 +49,7 @@ trait Transaction
     /**
      * @group integration
      * @group transactions
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -59,8 +61,8 @@ trait Transaction
 
         $subscriptionYear = $subscription->getStartDate()->format('Y');
         $nextYear = $subscriptionYear + 1;
-        $startDate = new DateTime($subscriptionYear.'-01-01');
-        $endDate = new DateTime($nextYear.'-01-01');
+        $startDate = new \DateTime($subscriptionYear.'-01-01');
+        $endDate = new \DateTime($nextYear.'-01-01');
 
         $transactions = $this->dues->findTransactionsByCustomerId($customer->getId(), $startDate, $endDate);
         $sample = $transactions[0];
@@ -71,6 +73,7 @@ trait Transaction
     /**
      * @group integration
      * @group transactions
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -83,8 +86,8 @@ trait Transaction
         $subscriptionYear = $subscription->getStartDate()->format('Y');
         $beginningOfYearAfterSubscription = $subscriptionYear + 1;
         $endOfYearAfterSubscription = $beginningOfYearAfterSubscription + 1;
-        $startDate = new DateTime($beginningOfYearAfterSubscription.'-01-01');
-        $endDate = new DateTime($endOfYearAfterSubscription.'-01-01');
+        $startDate = new \DateTime($beginningOfYearAfterSubscription.'-01-01');
+        $endDate = new \DateTime($endOfYearAfterSubscription.'-01-01');
 
         $transactions = $this->dues->findTransactionsByCustomerId($customer->getId(), $startDate, $endDate);
 
@@ -94,6 +97,7 @@ trait Transaction
     /**
      * @group integration
      * @group transactions
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void

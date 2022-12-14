@@ -2,8 +2,6 @@
 
 namespace TeamGantt\Dues\Exception;
 
-use RuntimeException;
-
-class UnknownStatusException extends RuntimeException
+class UnknownStatusException extends \RuntimeException
 {
 }

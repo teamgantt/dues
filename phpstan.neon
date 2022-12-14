@@ -16,3 +16,4 @@ parameters:
     - stubs/Braintree/Subscription/StatusDetails.stub
     - stubs/Braintree/Transaction.stub
     - stubs/Braintree/Transaction/AddressDetails.stub
+    - stubs/Braintree/Transaction/PayPalDetails.stub

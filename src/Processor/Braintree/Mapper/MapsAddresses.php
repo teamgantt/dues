@@ -7,7 +7,6 @@ use Braintree\Transaction\AddressDetails;
 use TeamGantt\Dues\Model\Address;
 use TeamGantt\Dues\Model\Address\Country;
 use TeamGantt\Dues\Model\Address\State;
-use Throwable;
 
 trait MapsAddresses
 {
@@ -31,7 +30,7 @@ trait MapsAddresses
     {
         try {
             return new State($braintreeAddress->region);
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             return null;
         }
     }
@@ -44,7 +43,7 @@ trait MapsAddresses
         try {
             // countryCodeAlpha2 exists but is not documented on the BraintreeAddress
             return new Country($braintreeAddress->countryCodeAlpha2);
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             return null;
         }
     }

@@ -6,7 +6,6 @@ use Braintree\PaymentInstrumentType;
 use Braintree\Transaction;
 use Braintree\Transaction\CustomerDetails;
 use Braintree\Transaction\PayPalDetails;
-use DateTime;
 use PHPUnit\Framework\TestCase;
 use TeamGantt\Dues\Processor\Braintree\Mapper\AddOnMapper;
 use TeamGantt\Dues\Processor\Braintree\Mapper\DiscountMapper;
@@ -24,7 +23,7 @@ final class TransactionMapperTest extends TestCase
             'subscriptionId' => '12345',
             'status' => Transaction::AUTHORIZED,
             'amount' => '10.00',
-            'createdAt' => new DateTime(),
+            'createdAt' => new \DateTime(),
             'planId' => null,
             'type' => Transaction::SALE,
             'paymentInstrumentType' => PaymentInstrumentType::PAYPAL_ACCOUNT,

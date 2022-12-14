@@ -16,9 +16,6 @@ class PayPalDetails
         return $this->payerEmail;
     }
 
-    /**
-     * @return PayPalDetails
-     */
     public function setPayerEmail(string $payerEmail): self
     {
         $this->payerEmail = $payerEmail;

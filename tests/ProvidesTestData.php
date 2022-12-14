@@ -2,9 +2,6 @@
 
 namespace TeamGantt\Dues\Tests;
 
-use DateInterval;
-use DateTime;
-use DateTimeZone;
 use TeamGantt\Dues\Dues;
 use TeamGantt\Dues\Model\Customer;
 use TeamGantt\Dues\Model\Customer\CustomerBuilder;
@@ -48,8 +45,8 @@ trait ProvidesTestData
             $callback = $cb ?? fn ($x) => $x;
             $addOns = $dues->listAddOns();
             $plan = $dues->findPlanById('test-plan-c-yearly');
-            $now = new DateTime('now', new DateTimeZone('UTC'));
-            $startDate = $now->add(new DateInterval('P1D')); // start 1 day in the future
+            $now = new \DateTime('now', new \DateTimeZone('UTC'));
+            $startDate = $now->add(new \DateInterval('P1D')); // start 1 day in the future
 
             $subscription = (new SubscriptionBuilder())
                 ->withAddOn($addOns[0])

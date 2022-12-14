@@ -2,7 +2,6 @@
 
 namespace TeamGantt\Dues\Processor\Braintree\Subscription\Update;
 
-use Exception;
 use TeamGantt\Dues\Exception\SubscriptionNotCanceledException;
 use TeamGantt\Dues\Model\Subscription;
 
@@ -17,7 +16,7 @@ class CancelStrategy extends BaseUpdateStrategy
                 ->cancel($subscription->getId());
 
             return null;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw new SubscriptionNotCanceledException($e->getMessage());
         }
     }

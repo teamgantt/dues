@@ -17,6 +17,8 @@ abstract class Modifier extends Entity implements Arrayable, Valuable
 
     protected bool $isExpired = false;
 
+    protected ?float $numberOfBillingCycles;
+
     public function __construct(string $id = '', ?int $quantity = null, ?Price $price = null)
     {
         parent::__construct($id);
@@ -27,6 +29,18 @@ abstract class Modifier extends Entity implements Arrayable, Valuable
     public function getPrice(): ?Price
     {
         return $this->price;
+    }
+
+    public function getNumberOfBillingCycles(): ?float
+    {
+        return $this->numberOfBillingCycles ?? null;
+    }
+
+    public function setNumberOfBillingCycles(?float $numberOfBillingCycles): Modifier
+    {
+        $this->numberOfBillingCycles = $numberOfBillingCycles;
+
+        return $this;
     }
 
     public function isExpired(): bool
@@ -77,7 +91,16 @@ abstract class Modifier extends Entity implements Arrayable, Valuable
         ]);
 
         if ($price = $this->getPrice()) {
-            return array_merge($array, $price->toArray());
+            $array = array_merge($array, $price->toArray());
+        }
+
+        if ($numberOfBillingCycles = $this->getNumberOfBillingCycles()) {
+            $append = match ($numberOfBillingCycles) {
+                INF => ['neverExpires' => true],
+                default => ['numberOfBillingCycles' => intval($numberOfBillingCycles)]
+            };
+
+            $array = array_merge($array, $append);
         }
 
         return $array;

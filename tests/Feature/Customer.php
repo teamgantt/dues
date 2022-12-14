@@ -111,6 +111,7 @@ trait Customer
 
     /**
      * @group integration
+     *
      * @dataProvider customerByValidityProvider
      *
      * @param string $id
@@ -138,6 +139,7 @@ trait Customer
 
     /**
      * @group integration
+     *
      * @dataProvider customerByValidityProvider
      *
      * @return void
@@ -159,6 +161,7 @@ trait Customer
 
     /**
      * @group integration
+     *
      * @dataProvider customerByValidityProvider
      *
      * @return void
@@ -181,6 +184,7 @@ trait Customer
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -203,6 +207,7 @@ trait Customer
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -224,6 +229,7 @@ trait Customer
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -248,6 +254,7 @@ trait Customer
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void

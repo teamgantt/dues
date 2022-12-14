@@ -2,13 +2,12 @@
 
 namespace TeamGantt\Dues\Model\Subscription;
 
-use DateTime;
 use TeamGantt\Dues\Contracts\Arrayable;
 use TeamGantt\Dues\Model\Money;
 
 class StatusHistory implements Arrayable
 {
-    public DateTime $timestamp;
+    public \DateTime $timestamp;
 
     public Status $status;
 
@@ -18,7 +17,7 @@ class StatusHistory implements Arrayable
 
     public string $planId;
 
-    public function __construct(DateTime $timestamp)
+    public function __construct(\DateTime $timestamp)
     {
         $this->timestamp = $timestamp;
     }
@@ -71,7 +70,7 @@ class StatusHistory implements Arrayable
         return $this->planId;
     }
 
-    public function getTimestamp(): DateTime
+    public function getTimestamp(): \DateTime
     {
         return $this->timestamp;
     }

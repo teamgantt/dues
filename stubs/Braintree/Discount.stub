@@ -8,6 +8,7 @@ namespace Braintree;
  * @property int $currentBillingCycle
  * @property bool $neverExpires
  * @property ?int $numberOfBillingCycles
+ * @property int $quantity
  */
 class Discount
 {

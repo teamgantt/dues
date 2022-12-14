@@ -2,8 +2,6 @@
 
 namespace TeamGantt\Dues\Model;
 
-use DateTime;
-use DateTimeZone;
 use TeamGantt\Dues\Model\Modifier\HasModifiers;
 use TeamGantt\Dues\Model\Plan\NullPlan;
 use TeamGantt\Dues\Model\Transaction\CreditCardDetails;
@@ -32,7 +30,7 @@ class Transaction extends Entity
 
     protected PaymentInstrumentType $paymentInstrumentType;
 
-    protected DateTime $createdAt;
+    protected \DateTime $createdAt;
 
     protected ?CreditCardDetails $creditCardDetails = null;
 
@@ -49,18 +47,15 @@ class Transaction extends Entity
         $this->type = Type::initialized();
         $this->status = Status::initialized();
         $this->paymentInstrumentType = PaymentInstrumentType::initialized();
-        $this->createdAt = new DateTime('now', new DateTimeZone('UTC'));
+        $this->createdAt = new \DateTime('now', new \DateTimeZone('UTC'));
     }
 
-    public function getCreatedAt(): DateTime
+    public function getCreatedAt(): \DateTime
     {
         return $this->createdAt;
     }
 
-    /**
-     * @return Transaction
-     */
-    public function setCreatedAt(DateTime $createdAt): self
+    public function setCreatedAt(\DateTime $createdAt): self
     {
         $this->createdAt = $createdAt;
 
@@ -72,9 +67,6 @@ class Transaction extends Entity
         return $this->status;
     }
 
-    /**
-     * @return Transaction
-     */
     public function setStatus(Status $status): self
     {
         $this->status = $status;
@@ -99,9 +91,6 @@ class Transaction extends Entity
         return $this->type;
     }
 
-    /**
-     * @return Transaction
-     */
     public function setType(Type $type): self
     {
         $this->type = $type;
@@ -114,9 +103,6 @@ class Transaction extends Entity
         return $this->amount;
     }
 
-    /**
-     * @return Transaction
-     */
     public function setAmount(Money $amount): self
     {
         $this->amount = $amount;
@@ -129,9 +115,6 @@ class Transaction extends Entity
         return $this->plan;
     }
 
-    /**
-     * @return Transaction
-     */
     public function setPlan(Plan $plan): self
     {
         $this->plan = $plan;
@@ -144,9 +127,6 @@ class Transaction extends Entity
         return $this->subscription;
     }
 
-    /**
-     * @return Transaction
-     */
     public function setSubscription(Subscription $subscription): self
     {
         $this->subscription = $subscription;
@@ -159,9 +139,6 @@ class Transaction extends Entity
         return $this->customer;
     }
 
-    /**
-     * @return Transaction
-     */
     public function setCustomer(Customer $customer): self
     {
         $this->customer = $customer;
@@ -174,9 +151,6 @@ class Transaction extends Entity
         return $this->paymentInstrumentType;
     }
 
-    /**
-     * @return Transaction
-     */
     public function setPaymentInstrumentType(PaymentInstrumentType $paymentInstrumentType): self
     {
         $this->paymentInstrumentType = $paymentInstrumentType;
@@ -189,9 +163,6 @@ class Transaction extends Entity
         return $this->creditCardDetails;
     }
 
-    /**
-     * @return Transaction
-     */
     public function setCreditCardDetails(CreditCardDetails $creditCardDetails): self
     {
         $this->creditCardDetails = $creditCardDetails;
@@ -204,9 +175,6 @@ class Transaction extends Entity
         return $this->payPalDetails;
     }
 
-    /**
-     * @return Transaction
-     */
     public function setPayPalDetails(PayPalDetails $payPalDetails): self
     {
         $this->payPalDetails = $payPalDetails;

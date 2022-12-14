@@ -11,8 +11,6 @@ abstract class Builder
 
     /**
      * @param mixed $v
-     *
-     * @return Builder
      */
     protected function with(string $k, $v): self
     {

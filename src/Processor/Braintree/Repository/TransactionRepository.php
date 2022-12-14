@@ -5,8 +5,6 @@ namespace TeamGantt\Dues\Processor\Braintree\Repository;
 use Braintree\Gateway;
 use Braintree\Transaction as BraintreeTransaction;
 use Braintree\TransactionSearch;
-use DateTime;
-use Exception;
 use TeamGantt\Dues\Exception\TransactionNotFoundException;
 use TeamGantt\Dues\Model\Transaction;
 use TeamGantt\Dues\Processor\Braintree\Mapper\TransactionMapper;
@@ -38,7 +36,7 @@ class TransactionRepository
             }
 
             return $this->mapper->fromResult($result);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return null;
         }
     }
@@ -46,7 +44,7 @@ class TransactionRepository
     /**
      * @return Transaction[]
      */
-    public function findByCustomerId(string $customerId, ?DateTime $start = null, ?DateTime $end = null): array
+    public function findByCustomerId(string $customerId, ?\DateTime $start = null, ?\DateTime $end = null): array
     {
         $criteria = [TransactionSearch::customerId()->is($customerId)];
 

@@ -2,11 +2,8 @@
 
 namespace TeamGantt\Dues\Tests\Model\Address;
 
-use BadMethodCallException;
 use PHPUnit\Framework\TestCase;
 use TeamGantt\Dues\Model\Address\State;
-use Throwable;
-use TypeError;
 
 final class StateTest extends TestCase
 {
@@ -24,13 +21,13 @@ final class StateTest extends TestCase
 
     public function testCreatingStateFromMissingEnumValue()
     {
-        $this->expectException(BadMethodCallException::class);
+        $this->expectException(\BadMethodCallException::class);
         new State('Quebec/Montreal');
     }
 
     public function testCreatingStateFromInvalidEnumValue()
     {
-        $this->expectException(TypeError::class);
+        $this->expectException(\TypeError::class);
         new State(null);
     }
 
@@ -41,13 +38,13 @@ final class StateTest extends TestCase
 
         try {
             new State('Quebec/Montreal');
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $exception = 1;
         }
 
         try {
             new State(null);
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $typeError = 1;
         }
 

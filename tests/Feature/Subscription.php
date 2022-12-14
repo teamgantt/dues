@@ -2,10 +2,6 @@
 
 namespace TeamGantt\Dues\Tests\Feature;
 
-use DateInterval;
-use DateTime;
-use DateTimeImmutable;
-use DateTimeZone;
 use TeamGantt\Dues\Arr;
 use TeamGantt\Dues\Event\BaseEventListener;
 use TeamGantt\Dues\Exception\InvalidPriceException;
@@ -30,6 +26,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider customerProvider
      *
      * @return void
@@ -38,8 +35,8 @@ trait Subscription
     {
         $customer = $customerFactory($this->dues);
         $plan = $this->dues->findPlanById('test-plan-c-yearly');
-        $now = new DateTime('now', new DateTimeZone('UTC'));
-        $startDate = $now->add(new DateInterval('P1D')); // start 1 day in the future
+        $now = new \DateTime('now', new \DateTimeZone('UTC'));
+        $startDate = $now->add(new \DateInterval('P1D')); // start 1 day in the future
 
         $subscription = (new SubscriptionBuilder())
             ->withCustomer($customer)
@@ -64,6 +61,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider customerProvider
      *
      * @return void
@@ -72,8 +70,8 @@ trait Subscription
     {
         $customer = $customerFactory($this->dues);
         $plan = $this->dues->findPlanById('test-plan-c-yearly');
-        $now = new DateTime('now', new DateTimeZone('UTC'));
-        $startDate = $now->add(new DateInterval('P1D')); // start 1 day in the future
+        $now = new \DateTime('now', new \DateTimeZone('UTC'));
+        $startDate = $now->add(new \DateInterval('P1D')); // start 1 day in the future
 
         $subscription = (new SubscriptionBuilder())
             ->withCustomer($customer)
@@ -91,6 +89,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider customerProvider
      *
      * @return void
@@ -99,7 +98,7 @@ trait Subscription
     {
         $customer = $customerFactory($this->dues);
         $plan = $this->dues->findPlanById('test-plan-c-monthly');
-        $today = new DateTime('now', new DateTimeZone('UTC'));
+        $today = new \DateTime('now', new \DateTimeZone('UTC'));
         $daysInMonth = $today->format('t');
 
         $subscription = (new SubscriptionBuilder())
@@ -118,6 +117,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider customerProvider
      *
      * @return void
@@ -126,8 +126,8 @@ trait Subscription
     {
         $customer = $customerFactory($this->dues);
         $plan = $this->dues->findPlanById('test-plan-c-yearly');
-        $now = new DateTime('now', new DateTimeZone('UTC'));
-        $startDate = $now->add(new DateInterval('P1D')); // start 1 day in the future
+        $now = new \DateTime('now', new \DateTimeZone('UTC'));
+        $startDate = $now->add(new \DateInterval('P1D')); // start 1 day in the future
 
         $subscription = (new SubscriptionBuilder())
             ->withCustomer($customer)
@@ -152,6 +152,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider customerProvider
      *
      * @return void
@@ -176,6 +177,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider customerProvider
      *
      * @return void
@@ -204,6 +206,7 @@ trait Subscription
      * of Braintree since Braintree does NOT update price when a plan changes.
      *
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -227,6 +230,7 @@ trait Subscription
      * Test modifying a subscription with or without proration.
      *
      * @group integration
+     *
      * @dataProvider customerProvider
      *
      * @return void
@@ -264,6 +268,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -290,6 +295,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -301,7 +307,7 @@ trait Subscription
         $subscription->setPlan($plan);
 
         // A subscription cannot be created in the past in Braintree, so we're faking it to a date in the past
-        $subscription->setStartDate(new DateTime('2020-01-01T00:00:00'));
+        $subscription->setStartDate(new \DateTime('2020-01-01T00:00:00'));
         $updated = $this->dues->updateSubscription($subscription);
 
         $this->assertEquals('test-plan-c-monthly', $updated->getPlan()->getId());
@@ -318,14 +324,15 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
      */
     public function testUpdateSubscriptionPlanToPlanWithDifferentBillingCycleWithFutureStartDate(callable $subscriptionFactory)
     {
-        $now = new DateTime('now', new DateTimeZone('UTC'));
-        $startDate = $now->add(new DateInterval('P1D')); // start 1 day in the future
+        $now = new \DateTime('now', new \DateTimeZone('UTC'));
+        $startDate = $now->add(new \DateInterval('P1D')); // start 1 day in the future
         $subscription = $subscriptionFactory($this->dues, null, fn (ModelSubscription $s) => $s->setStartDate($startDate));
         $plan = $this->dues->findPlanById('test-plan-c-monthly');
         $subscription->setPlan($plan);
@@ -347,6 +354,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -379,6 +387,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -415,6 +424,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -442,6 +452,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -471,6 +482,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -493,6 +505,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -522,6 +535,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -538,6 +552,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -557,6 +572,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -590,6 +606,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -611,6 +628,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -633,6 +651,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
@@ -650,6 +669,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider customerProvider
      *
      * @return void
@@ -682,6 +702,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider customerProvider
      */
     public function testCreatePendingSubscriptionWithAddOn(callable $customerFactory)
@@ -689,8 +710,8 @@ trait Subscription
         $customer = $customerFactory($this->dues);
         $plan = $this->dues->findPlanById('test-plan-c-yearly');
         $addOns = $this->dues->listAddOns();
-        $now = new DateTime('now', new DateTimeZone('UTC'));
-        $startDate = $now->add(new DateInterval('P1D')); // start 1 day in the future
+        $now = new \DateTime('now', new \DateTimeZone('UTC'));
+        $startDate = $now->add(new \DateInterval('P1D')); // start 1 day in the future
 
         $subscription = (new SubscriptionBuilder())
             ->withCustomer($customer)
@@ -709,6 +730,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider customerProvider
      */
     public function testCreateSubscriptionWithDiscount(callable $customerFactory)
@@ -745,6 +767,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider customerProvider
      */
     public function testCreateSubscriptionWithInvalidAddOn(callable $customerFactory)
@@ -766,6 +789,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider customerProvider
      */
     public function testCreateSubscriptionWithInvalidDiscount(callable $customerFactory)
@@ -774,8 +798,8 @@ trait Subscription
 
         $customer = $customerFactory($this->dues);
         $plan = $this->dues->findPlanById('test-plan-c-yearly');
-        $now = new DateTime('now', new DateTimeZone('UTC'));
-        $startDate = $now->add(new DateInterval('P1D')); // start 1 day in the future
+        $now = new \DateTime('now', new \DateTimeZone('UTC'));
+        $startDate = $now->add(new \DateInterval('P1D')); // start 1 day in the future
         $discount = new Discount('totally-made-up-yall');
 
         $subscription = (new SubscriptionBuilder())
@@ -790,6 +814,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider customerProvider
      */
     public function testCreateSubscriptionWithInvalidStartDate(callable $customerFactory)
@@ -797,8 +822,8 @@ trait Subscription
         $this->expectException(SubscriptionNotCreatedException::class);
         $customer = $customerFactory($this->dues);
         $plan = $this->dues->findPlanById('test-plan-c-yearly');
-        $now = new DateTime('now', new DateTimeZone('UTC'));
-        $startDate = $now->sub(new DateInterval('P1D')); // start 1 day in the past
+        $now = new \DateTime('now', new \DateTimeZone('UTC'));
+        $startDate = $now->sub(new \DateInterval('P1D')); // start 1 day in the past
 
         $subscription = (new SubscriptionBuilder())
             ->withCustomer($customer)
@@ -811,6 +836,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider customerProvider
      */
     public function testFailedSubscriptionWithNewUserRollsBackUser(callable $customerFactory)
@@ -822,8 +848,8 @@ trait Subscription
         }
 
         $plan = $this->dues->findPlanById('test-plan-c-yearly');
-        $now = new DateTime('now', new DateTimeZone('UTC'));
-        $startDate = $now->sub(new DateInterval('P1D')); // start 1 day in the past
+        $now = new \DateTime('now', new \DateTimeZone('UTC'));
+        $startDate = $now->sub(new \DateInterval('P1D')); // start 1 day in the past
 
         $subscription = (new SubscriptionBuilder())
             ->withCustomer($customer)
@@ -842,6 +868,7 @@ trait Subscription
 
     /**
      * @dataProvider subscriptionProvider
+     *
      * @group integration
      */
     public function testFindSubscriptionsByCustomerId(callable $subscriptionFactory)
@@ -855,6 +882,7 @@ trait Subscription
 
     /**
      * @dataProvider subscriptionProvider
+     *
      * @group integration
      */
     public function testFindSubscriptionsByCustomerIdWithStatusFilter(callable $subscriptionFactory)
@@ -873,6 +901,7 @@ trait Subscription
 
     /**
      * @dataProvider subscriptionProvider
+     *
      * @group integration
      */
     public function testFindSubscription(callable $subscriptionFactory)
@@ -884,6 +913,7 @@ trait Subscription
 
     /**
      * @dataProvider subscriptionProvider
+     *
      * @group integration
      */
     public function testCancelSubscription(callable $subscriptionFactory)
@@ -895,6 +925,7 @@ trait Subscription
 
     /**
      * @dataProvider subscriptionProvider
+     *
      * @group integration
      */
     public function testCancelSubscriptions(callable $subscriptionFactory)
@@ -906,6 +937,7 @@ trait Subscription
 
     /**
      * @dataProvider subscriptionProvider
+     *
      * @group integration
      */
     public function testCancelSubscriptionsWithCanceledSubscriptions(callable $subscriptionFactory)
@@ -962,6 +994,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider customerProvider
      */
     public function testSubscriptionUpgradeCrossPlanWithUpdateToDefaultAddOns(callable $customerFactory)
@@ -1006,6 +1039,7 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider customerProvider
      */
     public function testChangingNonDefaultAddonPrice(callable $customerFactory)
@@ -1103,14 +1137,16 @@ trait Subscription
 
     /**
      * @group integration
+     *
      * @dataProvider subscriptionProvider
      *
      * @return void
      */
     public function testSubscriptionValuesWhenSubscriptionHasBalance()
     {
-        // Guarantee that we are always 1 day into a 30 day subscription.
-        $today = new DateTimeImmutable('UTC');
+        // Set time to the last possible microsecond of the day to guarantee
+        // we will always be only one day into the subscription.
+        $today = (new \DateTimeImmutable('UTC'))->setTime(23, 59, 59, 999);
         $subscriptionStart = $today->modify('-1 day');
         $subscriptionEnd = $today->modify('+28 days');
 
@@ -1145,5 +1181,43 @@ trait Subscription
         $this->assertEquals(-339.19, $hydratedSubscription->getBalance()->getAmount());
         $this->assertEquals(44.85, $hydratedSubscription->getValue()->getAmount());
         $this->assertEquals(43.36, $hydratedSubscription->getRemainingValue()->getAmount());
+    }
+
+    /**
+     * @group integration
+     *
+     * @dataProvider customerProvider
+     *
+     * @return void
+     */
+    public function testCreatingSubscriptionWithSpecifiedBillingCyclesModifiers(callable $customerFactory)
+    {
+        $customer = $customerFactory($this->dues);
+        $plan = $this->dues->findPlanById('test-plan-c-monthly');
+
+        $unlimitedDiscount = new Discount('promo_discount', 1, new Price(10));
+        $unlimitedDiscount->setNumberOfBillingCycles(INF);
+
+        $singleDiscount = new Discount('test-discount-a', 1, new Price(10));
+        $singleDiscount->setNumberOfBillingCycles(1);
+
+        $baseSubscription = (new SubscriptionBuilder())
+            ->withCustomer($customer)
+            ->withPlan($plan)
+            ->withDiscount($unlimitedDiscount)
+            ->withDiscount($singleDiscount)
+            ->build();
+
+        $subscription = $this->dues->createSubscription($baseSubscription);
+
+        $discounts = $subscription->getDiscounts();
+
+        $unlimited = array_values(array_filter($discounts, fn (Discount $d) => 'promo_discount' === $d->getId()))[0] ?? null;
+        $single = array_values(array_filter($discounts, fn (Discount $d) => 'test-discount-a' === $d->getId()))[0] ?? null;
+
+        $this->assertNotNull($unlimited);
+        $this->assertNotNull($single);
+        $this->assertEquals(INF, $unlimited->getNumberOfBillingCycles());
+        $this->assertEquals(1, $single->getNumberOfBillingCycles());
     }
 }

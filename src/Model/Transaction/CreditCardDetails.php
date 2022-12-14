@@ -21,9 +21,6 @@ class CreditCardDetails
         return $this->cardType;
     }
 
-    /**
-     * @return CreditCardDetails
-     */
     public function setCardType(CreditCardType $cardType): self
     {
         $this->cardType = $cardType;
@@ -36,9 +33,6 @@ class CreditCardDetails
         return $this->lastFour;
     }
 
-    /**
-     * @return CreditCardDetails
-     */
     public function setLastFour(string $lastFour): self
     {
         $this->lastFour = $lastFour;

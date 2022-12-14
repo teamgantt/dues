@@ -22,9 +22,6 @@ class Customer extends Entity implements Arrayable
         return $this->firstName;
     }
 
-    /**
-     * @return Customer
-     */
     public function setFirstName(string $firstName): self
     {
         $this->firstName = $firstName;
@@ -37,9 +34,6 @@ class Customer extends Entity implements Arrayable
         return $this->lastName;
     }
 
-    /**
-     * @return Customer
-     */
     public function setLastName(string $lastName): self
     {
         $this->lastName = $lastName;
@@ -52,9 +46,6 @@ class Customer extends Entity implements Arrayable
         return $this->emailAddress;
     }
 
-    /**
-     * @return Customer
-     */
     public function setEmailAddress(string $emailAddress): self
     {
         $this->emailAddress = $emailAddress;
@@ -62,9 +53,6 @@ class Customer extends Entity implements Arrayable
         return $this;
     }
 
-    /**
-     * @return Customer
-     */
     public function addPaymentMethod(PaymentMethod $paymentMethod): self
     {
         if ($this->hasPaymentMethod($paymentMethod)) {
@@ -106,8 +94,6 @@ class Customer extends Entity implements Arrayable
 
     /**
      * @param PaymentMethod[] $paymentMethods
-     *
-     * @return Customer
      */
     public function setPaymentMethods(array $paymentMethods): self
     {

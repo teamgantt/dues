@@ -23,13 +23,13 @@ jobs:
       - name: Run lint
         uses: php-actions/composer@v6
         with:
-          php_version: 7.4
+          php_version: 8.1
           command: check
 
       - name: Run static analysis
         uses: php-actions/composer@v6
         with:
-          php_version: 7.4
+          php_version: 8.1
           command: analyse
 
       - name: Run integration tests
@@ -40,5 +40,5 @@ jobs:
           BRAINTREE_PUBLIC_KEY: ${{ secrets.BRAINTREE_PUBLIC_KEY }}
           BRAINTREE_PRIVATE_KEY: ${{ secrets.BRAINTREE_PRIVATE_KEY }}
         with:
-          php_version: 7.4
+          php_version: 8.1
           command: test

@@ -2,7 +2,6 @@
 
 namespace TeamGantt\Dues\Processor;
 
-use DateTime;
 use TeamGantt\Dues\Contracts\SubscriptionGateway;
 use TeamGantt\Dues\Event\Dispatcher;
 use TeamGantt\Dues\Event\EventType;
@@ -119,7 +118,7 @@ trait ProcessesSubscriptions
     /**
      * @return Transaction[]
      */
-    public function findTransactionsByCustomerId(string $customerId, ?DateTime $start = null, ?DateTime $end = null): array
+    public function findTransactionsByCustomerId(string $customerId, ?\DateTime $start = null, ?\DateTime $end = null): array
     {
         return $this->gateway->findTransactionsByCustomerId($customerId, $start, $end);
     }

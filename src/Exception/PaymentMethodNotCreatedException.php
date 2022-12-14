@@ -2,8 +2,6 @@
 
 namespace TeamGantt\Dues\Exception;
 
-use RuntimeException;
-
-class PaymentMethodNotCreatedException extends RuntimeException
+class PaymentMethodNotCreatedException extends \RuntimeException
 {
 }

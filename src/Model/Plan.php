@@ -32,9 +32,6 @@ class Plan extends Entity implements Arrayable
         return $this->billingFrequency;
     }
 
-    /**
-     * @return Plan
-     */
     public function setBillingFrequency(int $frequency): self
     {
         $this->billingFrequency = $frequency;
