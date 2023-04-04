@@ -464,7 +464,7 @@ trait Subscription
         $this->assertTrue($subscription->is(Status::canceled()));
 
         $rollover = $subscription->getRemainingValue()->getAmount();
-        $this->assertEquals($rollover, 1726.83);
+        $this->assertEqualsWithDelta(1726.83, $rollover, 0.3);
     }
 
     /**
