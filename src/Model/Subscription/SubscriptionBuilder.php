@@ -122,6 +122,11 @@ class SubscriptionBuilder extends Builder
         return $this->with('nextBillingPeriodAmount', $amount);
     }
 
+    public function withNextBillingDate(\DateTimeInterface $nextBillingDate): self
+    {
+        return $this->with('nextBillingDate', $nextBillingDate);
+    }
+
     public function build(): Subscription
     {
         $subscription = (new Subscription($this->getId()))
@@ -144,6 +149,10 @@ class SubscriptionBuilder extends Builder
 
         if (isset($this->data['nextBillingPeriodAmount'])) {
             $subscription->setNextBillingPeriodAmount($this->data['nextBillingPeriodAmount']);
+        }
+
+        if (isset($this->data['nextBillingDate'])) {
+            $subscription->setNextBillingDate($this->data['nextBillingDate']);
         }
 
         if (isset($this->data['billingPeriod'])) {

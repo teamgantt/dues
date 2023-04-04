@@ -18,6 +18,7 @@ namespace Braintree;
  * @property string $paymentMethodToken
  * @property array $statusHistory
  * @property float $nextBillingPeriodAmount
+ * @property \DateTimeInterface $nextBillingDate
  */
 class Subscription
 {
