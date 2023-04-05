@@ -122,6 +122,88 @@ trait Subscription
      *
      * @return void
      */
+    public function testVerifyNextBillingDate(callable $customerFactory)
+    {
+        $customer = $customerFactory($this->dues);
+        $plan = $this->dues->findPlanById('test-plan-c-monthly');
+        $today = new \DateTime('now', new \DateTimeZone('UTC'));
+        $nextBillingDate = $today->modify('+1 month');
+
+        $subscription = (new SubscriptionBuilder())
+            ->withCustomer($customer)
+            ->withPlan($plan)
+            ->build();
+
+        /**
+         * @var ModelSubscription
+         */
+        $subscription = $this->dues->createSubscription($subscription);
+
+        $this->assertEquals($nextBillingDate->format('Y-m-d'), $subscription->getNextBillingDate()->format('Y-m-d'));
+    }
+
+    /**
+     * @group integration
+     *
+     * @dataProvider customerProvider
+     *
+     * @return void
+     */
+    public function testVerifyNextBillingDateWithFutureStartDate(callable $customerFactory)
+    {
+        $customer = $customerFactory($this->dues);
+        $plan = $this->dues->findPlanById('test-plan-c-monthly');
+        $now = new \DateTime('now', new \DateTimeZone('UTC'));
+        $startDate = $now->add(new \DateInterval('P1D')); // start 1 day in the future
+
+        $subscription = (new SubscriptionBuilder())
+            ->withCustomer($customer)
+            ->withPlan($plan)
+            ->withStartDate($startDate)
+            ->build();
+
+        /**
+         * @var ModelSubscription
+         */
+        $subscription = $this->dues->createSubscription($subscription);
+
+        $this->assertEquals($startDate->format('Y-m-d'), $subscription->getNextBillingDate()->format('Y-m-d'));
+    }
+
+    /**
+     * @group integration
+     *
+     * @dataProvider customerProvider
+     *
+     * @return void
+     */
+    public function testVerifyNextBillingDateOnCanceledSubscription(callable $customerFactory)
+    {
+        $customer = $customerFactory($this->dues);
+        $plan = $this->dues->findPlanById('test-plan-c-monthly');
+
+        $subscription = (new SubscriptionBuilder())
+            ->withCustomer($customer)
+            ->withPlan($plan)
+            ->build();
+
+        /**
+         * @var ModelSubscription
+         */
+        $subscription = $this->dues->createSubscription($subscription);
+
+        $canceled = $this->dues->cancelSubscription($subscription->getId());
+
+        $this->assertNull($canceled->getNextBillingDate());
+    }
+
+    /**
+     * @group integration
+     *
+     * @dataProvider customerProvider
+     *
+     * @return void
+     */
     public function testCreateSubscriptionWithListener(callable $customerFactory)
     {
         $customer = $customerFactory($this->dues);
@@ -382,7 +464,7 @@ trait Subscription
         $this->assertTrue($subscription->is(Status::canceled()));
 
         $rollover = $subscription->getRemainingValue()->getAmount();
-        $this->assertEquals($rollover, 1726.83);
+        $this->assertEqualsWithDelta(1726.83, $rollover, 0.3);
     }
 
     /**

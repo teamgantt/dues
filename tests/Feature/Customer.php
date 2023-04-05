@@ -259,7 +259,7 @@ trait Customer
      *
      * @return void
      */
-    public function testChangePaymentMethodToExistingPaymentMethodWithCancelledSubscriptions(callable $subscriptionFactory)
+    public function testChangePaymentMethodToExistingPaymentMethodWithCanceledSubscriptions(callable $subscriptionFactory)
     {
         $subscription = $subscriptionFactory($this->dues);
         $customer = $subscription->getCustomer();

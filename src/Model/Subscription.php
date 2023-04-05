@@ -48,6 +48,8 @@ class Subscription extends Entity implements Arrayable, Valuable
 
     protected ?Money $nextBillingPeriodAmount;
 
+    protected ?\DateTimeInterface $nextBillingDate;
+
     protected bool $isProrated = true;
 
     /**
@@ -90,6 +92,7 @@ class Subscription extends Entity implements Arrayable, Valuable
                 'payment' => empty($payment) ? null : $payment->toArray(),
                 'plan' => $this->plan->toArray(),
                 'nextBillingPeriodAmount' => $this->getNextBillingPeriodAmount(),
+                'nextBillingDate' => $this->getNextBillingDate(),
             ]),
             [
                 'isProrated' => $this->isProrated(),
@@ -553,6 +556,26 @@ class Subscription extends Entity implements Arrayable, Valuable
     public function setNextBillingPeriodAmount(Money $amount): self
     {
         $this->nextBillingPeriodAmount = $amount;
+
+        return $this;
+    }
+
+    public function getNextBillingDate(): ?\DateTimeInterface
+    {
+        if ($this->is(Status::canceled())) {
+            return null;
+        }
+
+        if (isset($this->nextBillingDate)) {
+            return $this->nextBillingDate;
+        }
+
+        return null;
+    }
+
+    public function setNextBillingDate(?\DateTimeInterface $date): self
+    {
+        $this->nextBillingDate = $date;
 
         return $this;
     }

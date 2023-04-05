@@ -54,7 +54,7 @@ class SubscriptionMapper
 
         $request['options'] = ['prorateCharges' => $request['isProrated']];
 
-        $request = Arr::dissoc($request, ['customer', 'daysPastDue', 'isProrated']);
+        $request = Arr::dissoc($request, ['customer', 'daysPastDue', 'isProrated', 'nextBillingDate']);
 
         $request = Arr::updateIn($request, [], function (array $r) {
             if (isset($r['paymentMethodToken']['token'])) {
@@ -111,6 +111,7 @@ class SubscriptionMapper
 
         $billingPeriodStart = $result->billingPeriodStartDate;
         $billingPeriodEnd = $result->billingPeriodEndDate;
+        $nextBillingDate = $result->nextBillingDate;
 
         $subscription = $builder
             ->withId($result->id)
@@ -122,6 +123,7 @@ class SubscriptionMapper
             ->withDaysPastDue($daysPastDue)
             ->withPaymentMethod($paymentMethod)
             ->withBillingPeriod($billingPeriodStart, $billingPeriodEnd)
+            ->withNextBillingDate($nextBillingDate)
             ->withPlan($plan);
 
         if (isset($result->nextBillingPeriodAmount)) {
