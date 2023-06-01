@@ -40,11 +40,29 @@ abstract class BaseUpdateStrategy implements UpdateStrategy
     protected function doBraintreeUpdate(Subscription $subscription, ?Plan $newPlan = null)
     {
         $request = $this->mapper->toRequest($subscription, $newPlan);
-        $request = Arr::dissoc($request, ['firstBillingDate', 'nextBillingPeriodAmount', 'status', 'statusHistory']);
+        $request = Arr::dissoc($request, $this->invalidUpdateKeys());
 
         return $this
             ->braintree
             ->subscription()
             ->update($request['id'], $request);
+    }
+
+    /**
+     * Keys that braintree does not allow to be updated.
+     *
+     * @return array<string>
+     */
+    protected function invalidUpdateKeys(): array
+    {
+        return [
+            'firstBillingDate',
+            'nextBillingPeriodAmount',
+            'status',
+            'statusHistory',
+            'trialDuration',
+            'trialDurationUnit',
+            'trialPeriod',
+        ];
     }
 }

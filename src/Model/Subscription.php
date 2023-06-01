@@ -15,6 +15,7 @@ use TeamGantt\Dues\Model\Subscription\Modifier\OperationType;
 use TeamGantt\Dues\Model\Subscription\Modifiers;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Subscription\StatusHistory;
+use TeamGantt\Dues\Model\Subscription\Trial\Trial;
 
 class Subscription extends Entity implements Arrayable, Valuable
 {
@@ -52,6 +53,8 @@ class Subscription extends Entity implements Arrayable, Valuable
 
     protected bool $isProrated = true;
 
+    protected Trial $trial;
+
     /**
      * @var StatusHistory[]
      */
@@ -84,6 +87,7 @@ class Subscription extends Entity implements Arrayable, Valuable
             array_filter([
                 'id' => $this->getId(),
                 'startDate' => $this->getStartDate(),
+                'trial' => $this->getTrial()?->toArray(),
                 'price' => empty($price) ? null : $price->toArray(),
                 'status' => $this->getStatus(),
                 'statusHistory' => $this->getStatusHistory(),
@@ -595,6 +599,22 @@ class Subscription extends Entity implements Arrayable, Valuable
     public function isProrated(): bool
     {
         return $this->isProrated;
+    }
+
+    public function setTrial(Trial $trial): self
+    {
+        $this->trial = $trial;
+
+        return $this;
+    }
+
+    public function getTrial(): ?Trial
+    {
+        if (isset($this->trial)) {
+            return $this->trial;
+        }
+
+        return null;
     }
 
     /**
