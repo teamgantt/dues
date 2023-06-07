@@ -117,7 +117,7 @@ class SubscriptionHydrator
         /**
          * Number of seconds to delay before retrying a request.
          */
-        $backoff = [2, 4, 16];
+        $backoff = [4, 8, 16, 32];
 
         try {
             return call_user_func($fn);
