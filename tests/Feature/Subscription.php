@@ -17,6 +17,8 @@ use TeamGantt\Dues\Model\Subscription\BillingPeriod;
 use TeamGantt\Dues\Model\Subscription\Modifiers;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Subscription\SubscriptionBuilder;
+use TeamGantt\Dues\Model\Subscription\Trial\Trial;
+use TeamGantt\Dues\Model\Subscription\Trial\TrialUnit;
 use TeamGantt\Dues\Processor\Braintree\Mapper\SubscriptionMapper;
 use TeamGantt\Dues\Tests\ProvidesTestData;
 
@@ -49,6 +51,7 @@ trait Subscription
         $this->assertFalse($subscription->getCustomer()->isNew());
         $this->assertFalse($subscription->isNew());
         $this->assertEquals(Status::pending(), $subscription->getStatus());
+        $this->assertNull($subscription->getTrial());
 
         // Ensure subscriptions are hydrated properly.
         $query = $this->dues->makeSubscriptionQuery();
@@ -57,6 +60,99 @@ trait Subscription
         $this->assertNotEmpty($thisSubscription->getCustomer()->getLastName());
         $this->assertNotEmpty($thisSubscription->getCustomer()->getEmailAddress());
         $this->assertGreaterThan(0, $thisSubscription->getNextBillingPeriodAmount()->getAmount());
+    }
+
+    /**
+     * @group integration
+     *
+     * @dataProvider customerProvider
+     *
+     * @return void
+     */
+    public function testCreateSubscriptionWithTrialPeriod(callable $customerFactory)
+    {
+        $customer = $customerFactory($this->dues);
+        $plan = $this->dues->findPlanById('test-plan-c-yearly');
+        $trial = new Trial(1, TrialUnit::day());
+
+        $subscription = (new SubscriptionBuilder())
+            ->withCustomer($customer)
+            ->withPlan($plan)
+            ->withTrial($trial)
+            ->build();
+
+        $subscription = $this->dues->createSubscription($subscription);
+
+        $this->assertFalse($subscription->getCustomer()->isNew());
+        $this->assertFalse($subscription->isNew());
+
+        $this->assertEquals(Status::active(), $subscription->getStatus());
+        $this->assertEquals(1, $subscription->getTrial()->getTimeframe());
+        $this->assertEquals(TrialUnit::day(), $subscription->getTrial()->getUnit());
+    }
+
+    /**
+     * @group integration
+     *
+     * @dataProvider customerProvider
+     *
+     * @return void
+     */
+    public function testModifyingATrialSubscription(callable $customerFactory)
+    {
+        // Purchase initial monthly subscription (on trial)
+        $customer = $customerFactory($this->dues);
+        $plan = $this->dues->findPlanById('test-plan-b-monthly');
+        $trial = new Trial(30, TrialUnit::day());
+
+        $subscription = (new SubscriptionBuilder())
+            ->withCustomer($customer)
+            ->withPlan($plan)
+            ->withTrial($trial)
+            ->build();
+
+        $subscription = $this->dues->createSubscription($subscription);
+        $this->assertEquals(30, $subscription->getTrial()->getTimeframe());
+        $this->assertEquals(TrialUnit::day(), $subscription->getTrial()->getUnit());
+
+        $nextPlan = $this->dues->findPlanById('test-plan-c-monthly');
+        $subscription->setPlan($nextPlan);
+
+        $updated = $this->dues->updateSubscription($subscription);
+        $this->assertEquals(30, $updated->getTrial()->getTimeframe());
+        $this->assertEquals(TrialUnit::day(), $updated->getTrial()->getUnit());
+    }
+
+    /**
+     * @group integration
+     *
+     * @dataProvider customerProvider
+     *
+     * @return void
+     */
+    public function testSwitchingBillingCycleOnATrialSubscription(callable $customerFactory)
+    {
+        // Purchase initial monthly subscription (on trial)
+        $customer = $customerFactory($this->dues);
+        $plan = $this->dues->findPlanById('test-plan-c-monthly');
+        $trial = new Trial(30, TrialUnit::day());
+
+        $subscription = (new SubscriptionBuilder())
+            ->withCustomer($customer)
+            ->withPlan($plan)
+            ->withTrial($trial)
+            ->build();
+
+        $subscription = $this->dues->createSubscription($subscription);
+        $this->assertEquals(30, $subscription->getTrial()->getTimeframe());
+        $this->assertEquals(TrialUnit::day(), $subscription->getTrial()->getUnit());
+
+        $nextPlan = $this->dues->findPlanById('test-plan-c-yearly');
+        $subscription->setPlan($nextPlan);
+
+        $updated = $this->dues->updateSubscription($subscription);
+        $this->assertEquals(30, $updated->getTrial()->getTimeframe());
+        $this->assertEquals(TrialUnit::day(), $updated->getTrial()->getUnit());
     }
 
     /**

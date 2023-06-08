@@ -2,6 +2,8 @@
 
 namespace Braintree;
 
+use TeamGantt\Dues\Model\Subscription\Trial\TrialUnit;
+
 /**
  * @property int $daysPastDue
  * @property array $addOns
@@ -19,6 +21,9 @@ namespace Braintree;
  * @property array $statusHistory
  * @property float $nextBillingPeriodAmount
  * @property \DateTimeInterface $nextBillingDate
+ * @property int $trialDuration
+ * @property TrialUnit $trialDurationUnit
+ * @property bool $trialPeriod
  */
 class Subscription
 {

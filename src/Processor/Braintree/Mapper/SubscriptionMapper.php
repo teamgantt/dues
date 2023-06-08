@@ -14,6 +14,8 @@ use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Model\Subscription\Modifiers;
 use TeamGantt\Dues\Model\Subscription\Status;
 use TeamGantt\Dues\Model\Subscription\SubscriptionBuilder;
+use TeamGantt\Dues\Model\Subscription\Trial\Trial;
+use TeamGantt\Dues\Model\Subscription\Trial\TrialUnit;
 use TeamGantt\Dues\Processor\Braintree\Mapper\Subscription\ModifierMapper;
 
 class SubscriptionMapper
@@ -54,7 +56,7 @@ class SubscriptionMapper
 
         $request['options'] = ['prorateCharges' => $request['isProrated']];
 
-        $request = Arr::dissoc($request, ['customer', 'daysPastDue', 'isProrated', 'nextBillingDate']);
+        $request = Arr::dissoc($request, ['customer', 'daysPastDue', 'isProrated', 'nextBillingDate', 'trial']);
 
         $request = Arr::updateIn($request, [], function (array $r) {
             if (isset($r['paymentMethodToken']['token'])) {
@@ -71,6 +73,12 @@ class SubscriptionMapper
 
             return $r;
         });
+
+        if ($subscription->getTrial() instanceof Trial) {
+            $request['trialDuration'] = $subscription->getTrial()->getTimeframe();
+            $request['trialDurationUnit'] = $subscription->getTrial()->getUnit();
+            $request['trialPeriod'] = true;
+        }
 
         return $this->withModifiers($request, $subscription, $plan);
     }
@@ -128,6 +136,13 @@ class SubscriptionMapper
 
         if (isset($result->nextBillingPeriodAmount)) {
             $subscription->withNextBillingPeriodAmount(new Money(floatval($result->nextBillingPeriodAmount)));
+        }
+
+        $trialPeriod = $result->trialPeriod;
+
+        if (true === $trialPeriod) {
+            $unit = TrialUnit::from($result->trialDurationUnit);
+            $subscription->withTrial(new Trial($result->trialDuration, $unit));
         }
 
         $subscription = $subscription->build();

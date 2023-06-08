@@ -11,6 +11,8 @@ use TeamGantt\Dues\Model\Price\NullPrice;
 use TeamGantt\Dues\Model\Subscription;
 use TeamGantt\Dues\Model\Subscription\Modifiers;
 use TeamGantt\Dues\Model\Subscription\SubscriptionBuilder;
+use TeamGantt\Dues\Model\Subscription\Trial\Trial;
+use TeamGantt\Dues\Model\Subscription\Trial\TrialUnit;
 
 class ChangeBillingCycleStrategy extends BaseUpdateStrategy
 {
@@ -73,15 +75,71 @@ class ChangeBillingCycleStrategy extends BaseUpdateStrategy
             ->setAddOns($addOns)
             ->setDiscounts($discounts);
 
-        // Braintree doesn't allow firstBillingDates in the past.
-        // When upgrading an existing subscription to new billing cycle, clear the startDate if the startDate is in the past.
-        $today = new \DateTime('utc');
-
-        if ($newSubscription->getStartDate() < $today) {
-            $newSubscription->beginImmediately();
-        }
+        $newSubscription = $this->handleFirstBillingDate($newSubscription);
+        $newSubscription = $this->handleTrialPeriod($newSubscription, $original);
 
         return $newSubscription;
+    }
+
+    /**
+     * Braintree doesn't allow firstBillingDates in the past.
+     * When upgrading an existing subscription to new billing cycle,
+     * clear the startDate if the startDate is in the past.
+     */
+    private function handleFirstBillingDate(Subscription $subscription): Subscription
+    {
+        $today = new \DateTime('utc');
+
+        if ($subscription->getStartDate() > $today) {
+            return $subscription;
+        }
+
+        return $subscription->beginImmediately();
+    }
+
+    /**
+     * Preserve the original trial period when a trial subscription changes billing cycles.
+     */
+    private function handleTrialPeriod(Subscription $newSubscription, Subscription $originalSubscription): Subscription
+    {
+        $isInTrial = $originalSubscription->getTrial() instanceof Trial;
+        $hasStartDate = $originalSubscription->getStartDate() instanceof \DateTime;
+
+        if (!$isInTrial || !$hasStartDate) {
+            return $newSubscription;
+        }
+
+        $newTrialDuration = $this->findDaysUntilNextTrialStart($originalSubscription->getStartDate());
+        $newTrial = new Trial($newTrialDuration, TrialUnit::day());
+
+        // Clear the first billing date, as you cannot define
+        // a first billing date & a trial period.
+        $newSubscription->beginImmediately();
+
+        return $newSubscription->setTrial($newTrial);
+    }
+
+    private function findDaysUntilNextTrialStart(?\DateTime $originalStartDate): int
+    {
+        if (!($originalStartDate instanceof \DateTime)) {
+            return 0;
+        }
+
+        $today = new \DateTimeImmutable('UTC');
+        $startOfToday = $today->setTime(0, 0, 0);
+        $trialEndDate = $originalStartDate;
+
+        $difference = $trialEndDate->diff($startOfToday);
+        if (!($difference instanceof \DateInterval)) {
+            return 0;
+        }
+
+        $remainingTrialDays = $difference->days;
+        if (is_bool($remainingTrialDays)) {
+            return 0;
+        }
+
+        return $remainingTrialDays;
     }
 
     private function getNewPurchaseModifier(Subscription $sub): ?Modifier

@@ -14,6 +14,7 @@ use TeamGantt\Dues\Model\Plan\NullPlan;
 use TeamGantt\Dues\Model\Price;
 use TeamGantt\Dues\Model\Price\NullPrice;
 use TeamGantt\Dues\Model\Subscription;
+use TeamGantt\Dues\Model\Subscription\Trial\Trial;
 
 class SubscriptionBuilder extends Builder
 {
@@ -127,6 +128,11 @@ class SubscriptionBuilder extends Builder
         return $this->with('nextBillingDate', $nextBillingDate);
     }
 
+    public function withTrial(Trial $trial): self
+    {
+        return $this->with('trial', $trial);
+    }
+
     public function build(): Subscription
     {
         $subscription = (new Subscription($this->getId()))
@@ -137,6 +143,10 @@ class SubscriptionBuilder extends Builder
 
         if (isset($this->data['startDate'])) {
             $subscription->setStartDate($this->data['startDate']);
+        }
+
+        if (isset($this->data['trial'])) {
+            $subscription->setTrial($this->data['trial']);
         }
 
         if (isset($this->data['paymentMethod'])) {
