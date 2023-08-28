@@ -38,6 +38,8 @@ trait PaymentMethod
 
         $paymentMethod = $this->dues->createPaymentMethod($paymentMethod);
         $this->assertInstanceOf(Token::class, $paymentMethod);
+        $this->assertEquals('4444', $paymentMethod->getLast4());
+        $this->assertEquals('mastercard', $paymentMethod->getType());
     }
 
     /**
@@ -54,12 +56,14 @@ trait PaymentMethod
             ->build();
 
         $customer = $this->dues->createCustomer($customer);
-        $paymentMethod = new Nonce('fake-valid-mastercard-nonce');
+        $paymentMethod = new Nonce('fake-valid-visa-nonce');
         $paymentMethod->setCustomer($customer);
         $paymentMethod->setBillingAddress(new Address(State::Michigan(), '49464', Country::US()));
 
         $paymentMethod = $this->dues->createPaymentMethod($paymentMethod);
         $this->assertInstanceOf(Address::class, $paymentMethod->getBillingAddress());
+        $this->assertEquals('1881', $paymentMethod->getLast4());
+        $this->assertEquals('visa', $paymentMethod->getType());
     }
 
     /**

@@ -67,6 +67,24 @@ class PaymentMethodMapper
 
         $token->setCustomer(new Customer($paymentMethod->customerId));
 
+        if ('Braintree\PayPalAccount' === get_class($paymentMethod)) {
+            $token->setType('paypal');
+
+            if (isset($paymentMethod->email)) {
+                $token->setName($paymentMethod->email);
+            }
+        } elseif ('Braintree\CreditCard' === get_class($paymentMethod)) {
+            $token->setType($paymentMethod->cardType);
+
+            if (isset($paymentMethod->last4)) {
+                $token->setLast4($paymentMethod->last4);
+            }
+
+            if (isset($paymentMethod->cardholderName)) {
+                $token->setName($paymentMethod->cardholderName);
+            }
+        }
+
         if (!isset($paymentMethod->billingAddress)) {
             return $token;
         }
